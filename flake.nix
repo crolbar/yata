@@ -14,6 +14,7 @@
             phpactor
 
             docker-compose
+            flyctl
           ];
         };
       }

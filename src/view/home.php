@@ -17,7 +17,7 @@ $styles = [ ];
     </head>
     <body>
         <div class="flex items-center justify-center h-screen">
-            <p>Hello, <?php echo $agent?>!</p>
+            <p>Hello! Your user agent is "<?php echo $agent?>"!</p>
         </div>
     </body>
 </html>
