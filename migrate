@@ -1,0 +1,3 @@
+<?php
+require "src/migrate.php";
+Main($argv);

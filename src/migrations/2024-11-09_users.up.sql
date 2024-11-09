@@ -1,0 +1,7 @@
+-- GENERATED FROM migrate.php
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name varchar(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
