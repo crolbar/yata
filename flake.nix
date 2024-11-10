@@ -6,9 +6,16 @@
     devShells = eachSystem (
       system: let
         pkgs = pkgsFor.${system};
+
+        serve = pkgs.writers.writeBashBin "serve" ''
+          cd public && \
+          php -S localhost:8000 index.php
+        '';
       in {
         default = pkgs.mkShell {
           buildInputs = with pkgs; [
+            serve
+
             php83
             php83Packages.php-cs-fixer
             phpactor
