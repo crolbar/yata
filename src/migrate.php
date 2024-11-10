@@ -190,9 +190,9 @@ function GenereteMigrationFiles(string $name)
     }
 
     $f = fopen($path . ".up.sql", "w");
-    fwrite($f, "-- GENERATED FROM migrate.php\n\nCREATE TABLE $name (\n    id SERIAL PRIMARY KEY,\n    name varchar(255) NOT NULL,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n)");
+    fwrite($f, "-- GENERATED FROM migrate.php\n\nCREATE TABLE \"$name\" (\n    id SERIAL PRIMARY KEY,\n    name varchar(255) NOT NULL,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n)");
     $f = fopen($path . ".down.sql", "w");
-    fwrite($f, "-- GENERATED FROM migrate.php\n\nDROP TABLE IF EXISTS $name;");
+    fwrite($f, "-- GENERATED FROM migrate.php\n\nDROP TABLE IF EXISTS \"$name\";");
 }
 
 function Main(array $argv)
