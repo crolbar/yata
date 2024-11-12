@@ -8,12 +8,16 @@ Router::get("/", function () {
     TaskController::index();
 });
 
-Router::post("/", function () {
-    if (isset($_POST["id"])) {
-        TaskController::deleteTaskById($_POST["id"]);
-    } else if (isset($_POST["title"])) {
-        TaskController::createTask($_POST["title"]);
-    }
+Router::get("/ajax/task/fetchall", function () {
+    TaskController::fetchAll();
+});
+
+Router::post("/ajax/task/create", function () {
+    TaskController::createTask();
+});
+
+Router::post("/ajax/task/delete", function() {
+    TaskController::deleteTaskById();
 });
 
 

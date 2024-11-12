@@ -14,15 +14,40 @@ class TaskController
         ]);
     }
 
-    public static function deleteTaskById(int $id): void
+    public static function fetchAll(): void
     {
-        TaskModel::deleteById($id);
-        self::index();
+        echo json_encode(TaskModel::fetchAll());
     }
 
-    public static function createTask(string $title): void
+    public static function deleteTaskById(): void
     {
+        $req_payload = file_get_contents("php://input");
+        $json_payload = json_decode($req_payload, true);
+
+        if (!isset($json_payload["id"])) {
+            // TODO: HANDLE ERROR
+            echo "ERROR: no id provided";
+            exit;
+        }
+
+        $id = $json_payload["id"];
+
+        TaskModel::deleteById($id);
+        echo self::fetchAll();
+    }
+
+    public static function createTask(): void
+    {
+        $req_payload = file_get_contents("php://input");
+        $json_payload = json_decode($req_payload, true);
+
+        if (!isset($json_payload["title"])) {
+            echo "ERROR: no title provided";
+            exit;
+        }
+        $title = $json_payload["title"];
+
         TaskModel::createTask($title);
-        self::index();
+        echo self::fetchAll();
     }
 }
