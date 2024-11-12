@@ -21,6 +21,10 @@ Router::get("/global.css", function () {
     Router::style("global");
 });
 
+Router::get("/tailwind.css", function () {
+    Router::style("tailwind");
+});
+
 Router::get("404", function () {
     Router::view("not_found");
 });

@@ -7,21 +7,24 @@
       system: let
         pkgs = pkgsFor.${system};
 
-        serve = pkgs.writers.writeBashBin "serve" ''
-          cd public && \
-          php -S localhost:8000 index.php
-        '';
+        inherit (pkgs) lib;
+        scripts = import ./scripts.nix {inherit pkgs lib;};
       in {
         default = pkgs.mkShell {
+          packages = with pkgs;
+            [
+              phpactor # lsp
+              php83Packages.php-cs-fixer # formatter
+
+              tailwindcss # stylesheet builder
+
+              docker-compose
+              flyctl # deployment
+            ]
+            ++ scripts;
+
           buildInputs = with pkgs; [
-            serve
-
             php83
-            php83Packages.php-cs-fixer
-            phpactor
-
-            docker-compose
-            flyctl
           ];
         };
       }

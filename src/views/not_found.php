@@ -4,7 +4,7 @@
         <title>yo</title>
 
         <link rel="stylesheet" href="global.css">
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="tailwind.css">
     </head>
     <body>
         <div class="flex items-center justify-center h-screen">

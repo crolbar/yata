@@ -12,10 +12,10 @@ $styles = [];
         <title>yo</title>
 
         <link rel="stylesheet" href="global.css">
+        <link rel="stylesheet" href="tailwind.css">
         <style> <?php foreach ($styles as $style) {
             require $style;
         } ?> </style>
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     </head>
     <body>
         <div class="flex flex-col items-center justify-center gap-10">
