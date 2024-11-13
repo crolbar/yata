@@ -3,7 +3,27 @@
  * @var array $tasks
  */
 
-$styles = [];
+
+function generateListItem(string $id, string $title): string {
+    return <<<HTML
+        <li class='flex gap-2'>
+            <button
+                id='delete-button'
+                value='$id'
+                class='bg-black text-red-800'
+            >
+                X
+            </button>
+
+            <div id='task-title'>
+                $title
+            </div>
+            <div class='hidden' id='task-id'>
+                $id
+            </div>
+        </li>\n
+    HTML;
+}
 ?>
 
 <!DOCTYPE html>
@@ -13,36 +33,6 @@ $styles = [];
 
         <link rel="stylesheet" href="global.css">
         <link rel="stylesheet" href="tailwind.css">
-        <style> <?php foreach ($styles as $style) {
-            require $style;
-        } ?> </style>
-    </head>
-    <body>
-        <div class="flex flex-col items-center justify-center gap-10">
-            <button id="button">refresh</button>
-
-            <ul id="task-list">
-                <?php foreach ($tasks as $task): ?>
-                    <li class="flex gap-2">
-                        <button onclick='deleteTask(<?php echo $task["id"] ?>)' class="bg-black text-red-800">X</button>
-
-                        <div id="task-title">
-                            <?php echo $task["title"] ?>
-                        </div>
-                        <div class="hidden" id="task-id">
-                            <?php echo $task["id"] ?>
-                        </div>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-
-            <form id="create-form" action="ajax/task/create" method="POST">
-                <div class="flex flex-col items-center justify-center gap-5">
-                    <input class="bg-black border" id="create-taks-title" name='title' required>
-                    <button class="bg-black border p-1">Add task</button>
-                </div>
-            </form>
-        </div>
 
         <script>
             const updateList = (fetchedTasks) => {
@@ -75,23 +65,16 @@ $styles = [];
 
                 // append
                 if (fetchedTasks.size > 0) {
-                    fetchedTasks.forEach((v, k) => {
-                        const newTitle  = v;
-                        const newId     = k;
-
-                        const newItemHTML = `
-                        <li class="flex gap-2">
-                            <button onclick='deleteTask(${newId})' class="bg-black text-red-800">X</button>
-
-                            <div id="task-title">
-                                ${newTitle}
-                            </div>
-                            <div class="hidden" id="task-id">
-                                ${newId}
-                            </div>
-                        </li>
-                        `;
-                        list.insertAdjacentHTML("beforeend", newItemHTML);
+                    fetchedTasks.forEach((title, id) => {
+                        const itemHTML = `
+                            <?php echo generateListItem("\${id}", "\${title}")?>
+                        `
+                        list.insertAdjacentHTML("beforeend", itemHTML);
+                        list.lastElementChild.
+                            querySelector('button#delete-button').
+                            addEventListener("click", () => {
+                                deleteTask(id)
+                            })
                     });
                 }
             }
@@ -143,9 +126,36 @@ $styles = [];
 
                 xhr.send(data);
             }
+        </script>
+    </head>
 
+    <body>
+        <div class="flex flex-col items-center justify-center gap-10">
+            <button id="button">refresh</button>
+
+            <ul id="task-list">
+                <?php
+                    foreach($tasks as $task) {
+                        echo generateListItem($task["id"], $task["title"]);
+                    }
+                ?>
+            </ul>
+
+            <form id="create-form" action="ajax/task/create" method="POST">
+                <div class="flex flex-col items-center justify-center gap-5">
+                    <input class="bg-black border" id="create-taks-title" name='title' required>
+                    <button id="create-button" class="bg-black border p-1">Add task</button>
+                </div>
+            </form>
+        </div>
+
+        <script>
             document.getElementById("button").addEventListener("click", refreshTasks);
             document.getElementById("create-form").addEventListener("submit", createTask);
+
+            document.querySelectorAll('button#delete-button').forEach((button) => {
+                button.addEventListener("click", () => {deleteTask(button.value)})
+            })
         </script>
     </body>
 </html>
