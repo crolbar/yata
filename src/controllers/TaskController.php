@@ -50,4 +50,20 @@ class TaskController
         TaskModel::createTask($title);
         echo self::fetchAll();
     }
+
+    public static function updateTaskById(): void
+    {
+        $req_payload = file_get_contents("php://input");
+        $json_payload = json_decode($req_payload, true);
+
+        if (!isset($json_payload["title"]) || !isset($json_payload["id"])) {
+            echo "ERROR: no title/id provided";
+            exit;
+        }
+
+        $title = $json_payload["title"];
+        $id = $json_payload["id"];
+        TaskModel::updateTask($id, $title);
+        echo self::fetchAll();
+    }
 }

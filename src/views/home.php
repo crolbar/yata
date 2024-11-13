@@ -4,9 +4,18 @@
  */
 
 
-function generateListItem(string $id, string $title): string {
+function generateListItem(string $id, string $title): string
+{
     return <<<HTML
         <li class='flex gap-2'>
+            <button
+                id='show-update-button'
+                value='$id'
+                class='bg-black text-green-800'
+            >
+                U
+            </button>
+
             <button
                 id='delete-button'
                 value='$id'
@@ -15,11 +24,18 @@ function generateListItem(string $id, string $title): string {
                 X
             </button>
 
-            <div id='task-title'>
+            <div class='block' id='task-title'>
                 $title
             </div>
-            <div class='hidden' id='task-id'>
-                $id
+            <div class='hidden' id='task-id' data-id='$id'></div>
+
+            <div class='hidden' id='task-update'>
+                <form id="update-form" action="ajax/task/update" method="POST">
+                    <div class="flex items-center justify-center">
+                        <input class="bg-black border" id="update-task-title" name='title' value='$title' required>
+                        <button id="update-button" class="bg-black border">apply</button>
+                    </div>
+                </form>
             </div>
         </li>\n
     HTML;
@@ -43,8 +59,8 @@ function generateListItem(string $id, string $title): string {
                 for (let i = 0; i < len; i++) {
                     let item = childs[i];
 
-                    const title = item.querySelector("#task-title").innerText
-                    const id = parseInt(item.querySelector("#task-id").innerText)
+                    const title = item.querySelector("div#task-title").innerText
+                    const id = parseInt(item.querySelector("div#task-id").dataset.id)
 
                     // removal
                     if (!fetchedTasks.has(id)) {
@@ -70,79 +86,116 @@ function generateListItem(string $id, string $title): string {
                             <?php echo generateListItem("\${id}", "\${title}")?>
                         `
                         list.insertAdjacentHTML("beforeend", itemHTML);
-                        list.lastElementChild.
-                            querySelector('button#delete-button').
-                            addEventListener("click", () => {
-                                deleteTask(id)
-                            })
+                        let addedElement = list.lastElementChild;
+
+                        addDeleteButtonListener(addedElement.querySelector('button#delete-button'))
+                        addShowUpdateButtonListener(addedElement.querySelector('button#show-update-button'))
+                        addUpdateFormListener(addedElement.querySelector('form#update-form'))
                     });
                 }
             }
 
-            const onLoad = (xhr) => {
-                if (xhr.status === 200) {
-                    let tasks = JSON.parse(xhr.responseText);
-                    let fetchedTasks = new Map();
+            const toggleUpdateFormVisability = (listItem) => {
+                let hiddenDivClass = listItem.querySelector('div#task-update').attributes["class"]
+                hiddenDivClass.nodeValue = (hiddenDivClass.nodeValue === "hidden") ? "block" : "hidden"
 
-                    for (let task of tasks) {
-                        fetchedTasks.set(task.id, task.title);
-                    }
+                let titleDivClass = listItem.querySelector('div#task-title').attributes["class"]
+                titleDivClass.nodeValue = (titleDivClass.nodeValue === "hidden") ? "block" : "hidden"
+            }
 
-                    updateList(fetchedTasks);
+            const addShowUpdateButtonListener = (button) => {
+                button.addEventListener("click", () => {
+                    let listItem = button.parentNode;
+                    toggleUpdateFormVisability(listItem)
+                })
+            }
 
-                    console.log("refresh finished")
+            const addDeleteButtonListener = (button) => {
+                button.addEventListener("click", () => {deleteTask(button.value)})
+            }
+
+            const addUpdateFormListener = (updateForm) => {
+                updateForm.addEventListener("submit", (e) => {
+                    e.preventDefault();
+
+                    let updatedTitle = updateForm.querySelector("input#update-task-title").value;
+                    let id = updateForm.parentNode.parentNode.querySelector('div#task-id').dataset.id;
+
+                    updateTask(id, updatedTitle)
+
+                    toggleUpdateFormVisability(updateForm.parentNode.parentNode)
+                })
+            }
+
+            const onLoad = (resp) => {
+                let fetchedTasks = new Map();
+
+                for (let task of resp) {
+                    fetchedTasks.set(task.id, task.title);
                 }
+
+                updateList(fetchedTasks);
+
+                console.log("refresh finished")
+            }
+
+            const sendRequest = (path, method, data) => {
+                fetch(path, {
+                    method: method,
+                    body: data,
+                })
+                .then(response => response.json())
+                .then(resp => onLoad(resp))
+                .catch(error => console.error('Error: ', error));
             }
 
             const refreshTasks = () => {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", 'ajax/task/fetchall', true);
-                xhr.onload = () => {onLoad(xhr)};
-                xhr.send();
+                sendRequest('ajax/task/fetchall', 'GET', null)
             }
 
             const createTask = (e) => {
                 e.preventDefault();
 
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", 'ajax/task/create', true);
-                xhr.onload = () => {onLoad(xhr)};
-
-                let data = JSON.stringify({
-                    title: document.getElementById("create-taks-title").value
-                })
-
-                xhr.send(data);
+                sendRequest('ajax/task/create', 'POST',
+                    JSON.stringify({
+                        title: document.getElementById("create-taks-title").value
+                    }) 
+                )
             }
 
             const deleteTask = (id) => {
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", 'ajax/task/delete', true);
-                xhr.onload = () => {onLoad(xhr)};
+                sendRequest('ajax/task/delete', 'POST',
+                    JSON.stringify({
+                        id: id
+                    }) 
+                )
+            }
 
-                let data = JSON.stringify({
-                    id: id
-                })
-
-                xhr.send(data);
+            const updateTask = (id, title) => {
+                sendRequest('ajax/task/update', 'POST',
+                    JSON.stringify({
+                        title: title,
+                        id: id
+                    }) 
+                )
             }
         </script>
     </head>
 
     <body>
-        <div class="flex flex-col items-center justify-center gap-10">
-            <button id="button">refresh</button>
+        <div class="flex flex-col ml-20 gap-5">
+            <button class="flex w-14 border" id="refresh">refresh</button>
 
             <ul id="task-list">
                 <?php
-                    foreach($tasks as $task) {
+                    foreach ($tasks as $task) {
                         echo generateListItem($task["id"], $task["title"]);
                     }
                 ?>
             </ul>
 
             <form id="create-form" action="ajax/task/create" method="POST">
-                <div class="flex flex-col items-center justify-center gap-5">
+                <div class="flex-col items-center justify-center gap-5">
                     <input class="bg-black border" id="create-taks-title" name='title' required>
                     <button id="create-button" class="bg-black border p-1">Add task</button>
                 </div>
@@ -150,11 +203,25 @@ function generateListItem(string $id, string $title): string {
         </div>
 
         <script>
-            document.getElementById("button").addEventListener("click", refreshTasks);
+            // refresh button
+            document.getElementById("refresh").addEventListener("click", refreshTasks);
+
+            // create from submit
             document.getElementById("create-form").addEventListener("submit", createTask);
 
+            // delete task
             document.querySelectorAll('button#delete-button').forEach((button) => {
-                button.addEventListener("click", () => {deleteTask(button.value)})
+                addDeleteButtonListener(button)
+            })
+
+            // hide/show update form
+            document.querySelectorAll('button#show-update-button').forEach((button) => {
+                addShowUpdateButtonListener(button)
+            })
+
+            // update form
+            document.querySelectorAll('form#update-form').forEach((updateForm) => {
+                addUpdateFormListener(updateForm)
             })
         </script>
     </body>

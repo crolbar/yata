@@ -32,4 +32,12 @@ class TaskModel
         $query = "insert into tasks (title) values ('$title')";
         $pdo->exec($query);
     }
+
+    public static function updateTask(string $id, string $title): void
+    {
+        $pdo = Database::getConnection();
+
+        $query = "update tasks set title = '$title' where id = $id";
+        $pdo->exec($query);
+    }
 }

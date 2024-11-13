@@ -20,6 +20,10 @@ Router::post("/ajax/task/delete", function() {
     TaskController::deleteTaskById();
 });
 
+Router::post("/ajax/task/update", function() {
+    TaskController::updateTaskById();
+});
+
 
 Router::get("/global.css", function () {
     Router::style("global");
