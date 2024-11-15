@@ -9,18 +9,29 @@ class TaskController
 {
     public static function index(): void
     {
+        OAuthController::checkLogedIn();
+
+        $owner_id = (int)$_SESSION["id"];
+
         Router::view("home", [
-            //"tasks" => TaskModel::fetchAll()
+            "tasks" => TaskModel::fetchAll($owner_id)
         ]);
     }
 
     public static function fetchAll(): void
     {
-        echo json_encode(TaskModel::fetchAll());
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            OAuthController::checkLogedIn();
+        }
+
+        $owner_id = (int)$_SESSION["id"];
+        echo json_encode(TaskModel::fetchAll($owner_id));
     }
 
     public static function deleteTaskById(): void
     {
+        OAuthController::checkLogedIn();
+
         $req_payload = file_get_contents("php://input");
         $json_payload = json_decode($req_payload, true);
 
@@ -32,12 +43,15 @@ class TaskController
 
         $id = $json_payload["id"];
 
+        // TODO: CHECK IF THE TASK IS OWNED BY THE USER !!
         TaskModel::deleteById($id);
         echo self::fetchAll();
     }
 
     public static function createTask(): void
     {
+        OAuthController::checkLogedIn();
+
         $req_payload = file_get_contents("php://input");
         $json_payload = json_decode($req_payload, true);
 
@@ -46,13 +60,16 @@ class TaskController
             exit;
         }
         $title = $json_payload["title"];
+        $owner = $_SESSION["id"];
 
-        TaskModel::createTask($title);
+        TaskModel::createTask($title, $owner);
         echo self::fetchAll();
     }
 
     public static function updateTaskById(): void
     {
+        OAuthController::checkLogedIn();
+
         $req_payload = file_get_contents("php://input");
         $json_payload = json_decode($req_payload, true);
 
@@ -63,6 +80,8 @@ class TaskController
 
         $title = $json_payload["title"];
         $id = $json_payload["id"];
+
+        // TODO: CHECK IF THE TASK IS OWNED BY THE USER !!
         TaskModel::updateTask($id, $title);
         echo self::fetchAll();
     }

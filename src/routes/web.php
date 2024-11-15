@@ -18,10 +18,6 @@ Router::get("/logout", function () {
     OAuthController::logout();
 });
 
-Router::get("/profile", function () {
-    OAuthController::profile();
-});
-
 
 Router::get("/login/google-oauth", function () {
     OAuthController::googleOAth();
