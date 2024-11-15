@@ -1,3 +1,1 @@
--- GENERATED FROM migrate.php
-
 DROP TABLE IF EXISTS users;

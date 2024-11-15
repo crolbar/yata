@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Routing\Router;
 use App\Util\Env;
 use App\Lib\GoogleJWT;
+use App\Models\UserModel;
 
 class OAuthController
 {
@@ -42,6 +43,13 @@ class OAuthController
 
         $jwt = GoogleJWT::verifyJwtSignature($_COOKIE["jwt"]);
         if ($jwt === false) {
+            self::logout();
+            exit;
+        }
+
+        // maybe uneeded ?
+        $jwt = json_decode($jwt, true);
+        if (UserModel::isNewUser($jwt["sub"]) === true) {
             self::logout();
             exit;
         }
@@ -92,6 +100,17 @@ class OAuthController
         $user_info      = GoogleJWT::getUserInfo($access_token);
 
 
+        $sub        = $user_info['sub'];
+        $email      = $user_info['email'];
+        $name       = isset($user_info['given_name']) ? $user_info['name'] : '';
+        $picture    = isset($user_info['picture']) ? $user_info['picture'] : '';
+        $id         = UserModel::isNewUser($sub);
+
+        if ($id === true) {
+            UserModel::createUser($name, $email, $sub);
+            $id = UserModel::isNewUser($sub);
+        }
+
         setcookie(
             "jwt",
             $tokens["id_token"],
@@ -105,10 +124,10 @@ class OAuthController
 
         session_regenerate_id();
 
-        $_SESSION['google_loggedin']    = true;
-        $_SESSION['google_email']       = $user_info['email'];
-        $_SESSION['google_name']        = isset($user_info['given_name']) ? $user_info['given_name'] : '';
-        $_SESSION['google_picture']     = isset($user_info['picture']) ? $user_info['picture'] : '';
+        $_SESSION['id']         = $id;
+        $_SESSION['email']      = $email;
+        $_SESSION['name']       = $name;
+        $_SESSION['picture']    = $picture;
 
         Router::view("redirecting", ["url" => "/profile"]);
     }
