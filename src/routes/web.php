@@ -6,8 +6,7 @@ use App\Routing\Router;
 use App\Controllers\TaskController;
 
 Router::get("/", function () {
-    header('Location: profile');
-    //TaskController::index();
+    TaskController::index();
 });
 
 

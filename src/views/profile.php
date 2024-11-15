@@ -1,11 +1,6 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['google_loggedin'])) {
-    header('Location: login');
-    exit;
-}
-
 $google_loggedin    = $_SESSION['google_loggedin'];
 $google_email       = $_SESSION['google_email'];
 $google_name        = $_SESSION['google_name'];
