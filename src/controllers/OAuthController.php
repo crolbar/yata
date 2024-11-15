@@ -22,12 +22,7 @@ class OAuthController
         header('Location: /login');
     }
 
-    public static function profile(): void
-    {
-        self::checkLogedIn();
-        Router::view('profile');
-    }
-
+    // we can use this as an session_start()-er
     public static function checkLogedIn(): void
     {
         ob_start();
@@ -50,6 +45,12 @@ class OAuthController
         // maybe uneeded ?
         $jwt = json_decode($jwt, true);
         if (UserModel::isNewUser($jwt["sub"]) === true) {
+            self::logout();
+            exit;
+        }
+
+        session_start();
+        if (!isset($_SESSION["id"])) {
             self::logout();
             exit;
         }
@@ -129,6 +130,6 @@ class OAuthController
         $_SESSION['name']       = $name;
         $_SESSION['picture']    = $picture;
 
-        Router::view("redirecting", ["url" => "/profile"]);
+        Router::view("redirecting", ["url" => "/"]);
     }
 }

@@ -7,12 +7,17 @@ use PDO;
 
 class TaskModel
 {
-    public static function fetchAll(): array|bool
+    public static function fetchAll(int $owner_id): array|bool
     {
-        $pdo = Database::getConnection();
+        $pdo    = Database::getConnection();
 
-        $query = "select id, title from tasks";
-        $res = $pdo->query($query)->fetchAll(PDO::FETCH_ASSOC);
+        $query  = "SELECT id, title FROM tasks WHERE owner = :owner_id";
+        $stmt   = $pdo->prepare($query);
+
+        $stmt->bindValue(":owner_id", $owner_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $res = $stmt->fetchAll();
 
         return $res;
     }
@@ -20,7 +25,7 @@ class TaskModel
     public static function deleteById(int $id): void
     {
         $pdo    = Database::getConnection();
-        $query  = "delete from tasks where id = :id";
+        $query  = "DELETE FROM tasks WHERE id = :id";
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":id", $id, PDO::PARAM_INT);
@@ -28,13 +33,21 @@ class TaskModel
         $stmt->execute();
     }
 
-    public static function createTask(string $title): void
+    public static function createTask(string $title, int $owner_id): void
     {
         $pdo    = Database::getConnection();
-        $query  = "insert into tasks (title) values (:title)";
+
+        $query  = <<<SQL
+        INSERT INTO tasks
+            (title, owner)
+        VALUES 
+            (:title, :owner);
+        SQL;
+
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":title", $title, PDO::PARAM_STR);
+        $stmt->bindValue(":owner", $owner_id, PDO::PARAM_INT);
 
         $stmt->execute();
     }
@@ -42,11 +55,18 @@ class TaskModel
     public static function updateTask(string $id, string $title): void
     {
         $pdo    = Database::getConnection();
-        $query  = "update tasks set title = :title where id = :id";
+
+        $query  = <<<SQL
+        UPDATE tasks SET
+        title = :title,
+        updated_at = CURRENT_TIMESTAMP
+        WHERE id = :id;
+        SQL;
+
         $stmt   = $pdo->prepare($query);
 
-        $stmt->bindValue(":title",  $title, PDO::PARAM_STR);
-        $stmt->bindValue(":id",     $id,    PDO::PARAM_INT);
+        $stmt->bindValue(":title", $title, PDO::PARAM_STR);
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
 
         $stmt->execute();
     }
