@@ -1,10 +1,9 @@
 <?php
 session_start();
 
-$google_loggedin    = $_SESSION['google_loggedin'];
-$google_email       = $_SESSION['google_email'];
-$google_name        = $_SESSION['google_name'];
-$google_picture     = $_SESSION['google_picture'];
+$google_email   = $_SESSION['email'];
+$google_name    = $_SESSION['name'];
+$google_picture = $_SESSION['picture'];
 
 $styles = [
     "css/profile.css",

@@ -10,7 +10,7 @@ class TaskController
     public static function index(): void
     {
         Router::view("home", [
-            "tasks" => TaskModel::fetchAll()
+            //"tasks" => TaskModel::fetchAll()
         ]);
     }
 
