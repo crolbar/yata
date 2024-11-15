@@ -124,6 +124,14 @@ function importRoutes()
     }
 }
 
+function importLibs()
+{
+    $libs = glob(__DIR__ . "/lib/*");
+    foreach ($libs as $lib) {
+        require $lib;
+    }
+}
+
 function importUtil()
 {
     require "util.php";
@@ -143,6 +151,7 @@ importControllers();
 importModels();
 importConfig();
 importRoutes();
+importLibs();
 importUtil();
 
 handleRequest();
