@@ -34,7 +34,7 @@ class Router
         callable $callback,
         bool $is_protected
     ): void {
-        $this->routes[] = [
+        $this->routes[md5($method . $path)] = [
             "method"        => $method,
             "path"          => $path,
             "callback"      => $callback,
@@ -95,38 +95,27 @@ class Router
 
     private function handle(string $path, string $method): void
     {
-        $not_found = null;
+        $hash = md5($method . $path);
 
-        foreach ($this->routes as $route) {
-            $p = $route["path"];
-            if ($route['method'] != $method) {
-                continue;
+        if (!isset($this->routes[$hash])) {
+            $not_found_hash = md5("GET" . "404");
+
+            if (!isset($this->routes[$not_found_hash])) {
+                echo "404";
+                exit;
             }
 
-            if ($route['path'] == "404") {
-                $not_found = $route["callback"];
-                continue;
-            }
-
-            if ($route['path'] != $path) {
-                continue;
-            }
-
-            if ($route['is_protected']) {
-                self::handleProtected();
-            }
-
-            call_user_func($route["callback"]);
-            return;
+            call_user_func($this->routes[$not_found_hash]['callback']);
+            exit;
         }
 
+        $route = $this->routes[$hash];
 
-        if ($not_found != null) {
-            call_user_func($not_found);
-            return;
+        if ($route['is_protected']) {
+            self::handleProtected();
         }
 
-        echo "404";
+        call_user_func($route['callback']);
     }
 
     /*
