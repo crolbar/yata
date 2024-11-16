@@ -2,12 +2,14 @@
 
 namespace App\Routing;
 
+use App\Controllers\OAuthController;
+
 class Router
 {
     private $routes = [];
     private static $instance = null;
 
-    public static function getInstance(): Router
+    private static function getInstance(): Router
     {
         if (self::$instance === null) {
             self::$instance = new Router();
@@ -15,15 +17,28 @@ class Router
         return self::$instance;
     }
 
+    private static function loadRoutes(): void
+    {
+        $routes = glob(__DIR__ . "/routes/*");
+        foreach ($routes as $route) {
+            require $route;
+        }
+    }
+
     /*
     * @param callable $callback
     */
-    public function addRoute(string $path, string $method, callable $callback): void
-    {
+    public function addRoute(
+        string $method,
+        string $path,
+        callable $callback,
+        bool $is_protected
+    ): void {
         $this->routes[] = [
-            "method"    => $method,
-            "path"      => $path,
-            "callback"  => $callback,
+            "method"        => $method,
+            "path"          => $path,
+            "callback"      => $callback,
+            "is_protected"  => $is_protected,
         ];
     }
 
@@ -33,7 +48,7 @@ class Router
     */
     public static function get(string $path, callable $callback): void
     {
-        self::getInstance()->addRoute($path, "GET", $callback);
+        self::getInstance()->addRoute("GET", $path, $callback, false);
     }
 
     /*
@@ -41,10 +56,44 @@ class Router
     */
     public static function post(string $path, callable $callback): void
     {
-        self::getInstance()->addRoute($path, "POST", $callback);
+        self::getInstance()->addRoute("POST", $path, $callback, false);
     }
 
-    public function handle(string $path, string $method): void
+    /*
+    * @param callable $callback
+    */
+    public static function getProtected(string $path, callable $callback): void
+    {
+        self::getInstance()->addRoute("GET", $path, $callback, true);
+    }
+
+    /*
+    * @param callable $callback
+    */
+    public static function postProtected(string $path, callable $callback): void
+    {
+        self::getInstance()->addRoute("POST", $path, $callback, true);
+    }
+
+    public static function handleRequest(): void
+    {
+        self::loadRoutes();
+
+        $req_path   = $_SERVER["REQUEST_URI"];
+        $req_path   = strtok($req_path, '?');
+        $req_method = $_SERVER["REQUEST_METHOD"];
+
+        self::getInstance()->handle($req_path, $req_method);
+    }
+
+    private static function handleProtected(): void
+    {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            OAuthController::checkLogedIn();
+        }
+    }
+
+    private function handle(string $path, string $method): void
     {
         $not_found = null;
 
@@ -61,6 +110,10 @@ class Router
 
             if ($route['path'] != $path) {
                 continue;
+            }
+
+            if ($route['is_protected']) {
+                self::handleProtected();
             }
 
             call_user_func($route["callback"]);
@@ -91,67 +144,3 @@ class Router
         require "views/css/" . $style . ".css";
     }
 }
-
-function importControllers()
-{
-    $controllers = glob(__DIR__ . "/controllers/*");
-    foreach ($controllers as $controller) {
-        require $controller;
-    }
-}
-
-function importModels()
-{
-    $models = glob(__DIR__ . "/models/*");
-    foreach ($models as $model) {
-        require $model;
-    }
-}
-
-function importConfig()
-{
-    $configs = glob(__DIR__ . "/config/*");
-    foreach ($configs as $config) {
-        require $config;
-    }
-}
-
-function importRoutes()
-{
-    $routes = glob(__DIR__ . "/routes/*");
-    foreach ($routes as $route) {
-        require $route;
-    }
-}
-
-function importLibs()
-{
-    $libs = glob(__DIR__ . "/lib/*");
-    foreach ($libs as $lib) {
-        require $lib;
-    }
-}
-
-function importUtil()
-{
-    require "util.php";
-}
-
-function handleRequest()
-{
-    $req_path   = $_SERVER["REQUEST_URI"];
-    $req_path   = strtok($req_path, '?');
-    $req_method = $_SERVER["REQUEST_METHOD"];
-
-    Router::getInstance()->handle($req_path, $req_method);
-}
-
-// imports
-importControllers();
-importModels();
-importConfig();
-importRoutes();
-importLibs();
-importUtil();
-
-handleRequest();

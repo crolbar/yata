@@ -156,7 +156,7 @@ class GoogleJWT
             OPENSSL_ALGO_SHA256
         );
 
-        if ($result === false) {
+        if ($result === false || $result === 0) {
             echo "Signature is invalid.";
             return false;
         }

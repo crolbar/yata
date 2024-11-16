@@ -1,2 +1,2 @@
 <?php
-require "../src/router.php";
+require "../src/main.php";
