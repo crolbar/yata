@@ -7,20 +7,48 @@ use PDO;
 
 class UserModel
 {
-    public static function createUser(string $name, string $email, string $sub): void
+    public static function createUser(string $name, string $email, string $sub, string $refresh_token): void
     {
         $pdo    = Database::getConnection();
 
-        $query  = "INSERT INTO users (name, email, sub) VALUES (:name, :email, :sub)";
+        $query  = <<<SQL
+        INSERT INTO users
+        (name, email, sub, refresh_token)
+        VALUES
+        (:name, :email, :sub, :refresh_token)
+        SQL;
 
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":name", $name, PDO::PARAM_STR);
         $stmt->bindValue(":email", $email, PDO::PARAM_STR);
         $stmt->bindValue(":sub", $sub, PDO::PARAM_STR);
+        $stmt->bindValue(":refresh_token", $refresh_token, PDO::PARAM_STR);
+
+        $stmt->execute();
+    }
+
+    public static function getRefreshToken(string $sub): string|bool
+    {
+        $pdo    = Database::getConnection();
+
+        $query  = <<<SQL
+        SELECT refresh_token FROM users WHERE sub = :sub
+        SQL;
+
+        $stmt   = $pdo->prepare($query);
+
+        $stmt->bindValue(":sub", $sub);
 
         $stmt->execute();
 
+        $res = $stmt->fetchAll();
+
+        if (sizeof($res) !== 1) {
+            return false;
+        }
+
+        return $res[0]["refresh_token"];
     }
 
     /*

@@ -22,6 +22,28 @@ class OAuthController
         header('Location: /login');
     }
 
+    private static function refreshJWT(string $sub): void
+    {
+        $refresh_token = UserModel::getRefreshToken($sub);
+
+        if ($refresh_token === false) {
+            self::logout();
+            exit;
+        }
+
+        $jwt = GoogleJWT::getJWTFromRefresh($refresh_token);
+        setcookie(
+            "jwt",
+            $jwt,
+            [
+                "httponly" => true,
+                "secure" => true,
+                "path" => "/",
+                "samesite" => "Strict"
+            ]
+        );
+    }
+
     // we can use this as an session_start()-er
     public static function checkLogedIn(): void
     {
@@ -49,6 +71,11 @@ class OAuthController
             exit;
         }
 
+        // jwt expired or expires in less than 5 min
+        if ($jwt["exp"] - time() < 300) {
+            self::refreshJWT($jwt["sub"]);
+        }
+
         session_start();
         if (!isset($_SESSION["id"])) {
             self::logout();
@@ -74,6 +101,8 @@ class OAuthController
             'redirect_uri'  => $redirect_uri,
             'response_type' => $response_type,
             'scope'         => $scope,
+            'access_type'   => 'offline',
+            'prompt'        => 'consent',
         ];
 
         header('Location: ' . $google_oauth_uri . '?' . http_build_query($params));
@@ -98,6 +127,7 @@ class OAuthController
         $tokens         = GoogleJWT::getTokens($code);
 
         $access_token   = $tokens['access_token'];
+        $refresh_token  = $tokens["refresh_token"];
         $user_info      = GoogleJWT::getUserInfo($access_token);
 
 
@@ -108,7 +138,7 @@ class OAuthController
         $id         = UserModel::isNewUser($sub);
 
         if ($id === true) {
-            UserModel::createUser($name, $email, $sub);
+            UserModel::createUser($name, $email, $sub, $refresh_token);
             $id = UserModel::isNewUser($sub);
         }
 

@@ -12,6 +12,44 @@ function base64UrlDecode(string $input): string|bool
 
 class GoogleJWT
 {
+    public static function getJWTFromRefresh(string $refresh_token): mixed
+    {
+        Env::ParseEnv();
+
+        $google_oauth_client_id     = getenv('GOATH_CLIENT_ID');
+        $google_oauth_client_secret = getenv('GOATH_CLIENT_SECRET');
+        $google_oauth_redirect_uri  = getenv('GOATH_REDIRECT');
+        $token_uri                  = 'https://accounts.google.com/o/oauth2/token';
+
+        $data = [
+            'client_id'     => $google_oauth_client_id,
+            'client_secret' => $google_oauth_client_secret,
+            'redirect_uri'  => $google_oauth_redirect_uri,
+            'refresh_token' => $refresh_token,
+            'grant_type'    => 'refresh_token'
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $token_uri);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        $response = json_decode($response, true);
+        $id_token = $response["id_token"];
+
+        if (self::verifyJwtSignature($id_token) === false) {
+            echo 'Invalid id_token.';
+            exit;
+        }
+
+        return $id_token;
+    }
+
     public static function getTokens(string $code): mixed
     {
         Env::ParseEnv();
