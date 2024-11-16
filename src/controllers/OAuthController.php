@@ -22,6 +22,28 @@ class OAuthController
         header('Location: /login');
     }
 
+    public static function createSession(string $jwt, string $id, string $email, string $name, string $picture): void
+    {
+        session_start();
+        session_regenerate_id();
+
+        setcookie(
+            "jwt",
+            $jwt,
+            [
+                "httponly" => true,
+                "secure" => true,
+                "path" => "/",
+                "samesite" => "Strict"
+            ]
+        );
+
+        $_SESSION['id']         = $id;
+        $_SESSION['email']      = $email;
+        $_SESSION['name']       = $name;
+        $_SESSION['picture']    = $picture;
+    }
+
     private static function refreshJWT(string $sub): void
     {
         $refresh_token = UserModel::getRefreshToken($sub);
@@ -110,8 +132,6 @@ class OAuthController
 
     public static function googleRedirect(): void
     {
-        session_start();
-
         if (isset($_GET['error'])) {
             $error = $_GET['error'];
             echo "got response with error: $error";
@@ -142,23 +162,7 @@ class OAuthController
             $id = UserModel::isNewUser($sub);
         }
 
-        setcookie(
-            "jwt",
-            $tokens["id_token"],
-            [
-                "httponly" => true,
-                "secure" => true,
-                "path" => "/",
-                "samesite" => "Strict"
-            ]
-        );
-
-        session_regenerate_id();
-
-        $_SESSION['id']         = $id;
-        $_SESSION['email']      = $email;
-        $_SESSION['name']       = $name;
-        $_SESSION['picture']    = $picture;
+        self::createSession($tokens["id_token"], $id, $email, $name, $picture);
 
         Router::view("redirecting", ["url" => "/"]);
     }
