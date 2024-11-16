@@ -22,13 +22,20 @@ class TaskModel
         return $res;
     }
 
-    public static function deleteById(int $id): void
+    public static function deleteById(int $id, int $owner_id): void
     {
         $pdo    = Database::getConnection();
-        $query  = "DELETE FROM tasks WHERE id = :id";
+        $query  = <<<SQL
+        DELETE FROM tasks
+        WHERE
+        id = :id AND
+        owner = :owner_id;
+        SQL;
+
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":owner_id", $owner_id, PDO::PARAM_INT);
 
         $stmt->execute();
     }
@@ -52,7 +59,7 @@ class TaskModel
         $stmt->execute();
     }
 
-    public static function updateTask(string $id, string $title): void
+    public static function updateTask(int $id, string $title, int $owner_id): void
     {
         $pdo    = Database::getConnection();
 
@@ -60,13 +67,16 @@ class TaskModel
         UPDATE tasks SET
         title = :title,
         updated_at = CURRENT_TIMESTAMP
-        WHERE id = :id;
+        WHERE
+        id = :id AND
+        owner = :owner_id;
         SQL;
 
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":title", $title, PDO::PARAM_STR);
         $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":owner_id", $owner_id, PDO::PARAM_INT);
 
         $stmt->execute();
     }

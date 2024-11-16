@@ -36,15 +36,14 @@ class TaskController
         $json_payload = json_decode($req_payload, true);
 
         if (!isset($json_payload["id"])) {
-            // TODO: HANDLE ERROR
             echo "ERROR: no id provided";
             exit;
         }
 
-        $id = $json_payload["id"];
+        $id         = (int)$json_payload["id"];
+        $owner_id   = (int)$_SESSION["id"];
 
-        // TODO: CHECK IF THE TASK IS OWNED BY THE USER !!
-        TaskModel::deleteById($id);
+        TaskModel::deleteById($id, $owner_id);
         echo self::fetchAll();
     }
 
@@ -60,7 +59,7 @@ class TaskController
             exit;
         }
         $title = $json_payload["title"];
-        $owner = $_SESSION["id"];
+        $owner = (int)$_SESSION["id"];
 
         TaskModel::createTask($title, $owner);
         echo self::fetchAll();
@@ -78,11 +77,11 @@ class TaskController
             exit;
         }
 
-        $title = $json_payload["title"];
-        $id = $json_payload["id"];
+        $title      = $json_payload["title"];
+        $id         = (int)$json_payload["id"];
+        $owner_id   = (int)$_SESSION["id"];
 
-        // TODO: CHECK IF THE TASK IS OWNED BY THE USER !!
-        TaskModel::updateTask($id, $title);
+        TaskModel::updateTask($id, $title, $owner_id);
         echo self::fetchAll();
     }
 }
