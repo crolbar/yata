@@ -185,9 +185,9 @@ class Calendar
         return <<<HTML
         <script>
             const sampleTasks = [
-                { date: '{$monday->format('Y-m-d')}', title: 'Team Meeting', start: '10:00', end: '11:30' },
-                { date: '{$wednesday->format('Y-m-d')}', title: 'Lunch Break', start: '12:00', end: '13:00' },
-                { date: '{$thursday->format('Y-m-d')}', title: 'Project Review', start: '15:00', end: '16:30' }
+                { date: '{$monday->format('Y-m-d')}', title: 'Team Meeting', start: '10:00', end: '14:30' },
+                { date: '{$wednesday->format('Y-m-d')}', title: 'Lunch Break', start: '12:00', end: '15:00' },
+                { date: '{$thursday->format('Y-m-d')}', title: 'Project Review', start: '17:00', end: '20:30' }
             ];
         </script>
         HTML;
@@ -228,7 +228,7 @@ $calendar = new Calendar();
             overflow: hidden;
             transition: all 0.2s;
         }
-        
+
         .task-block:hover {
             background-color: #60A5FA;
         }
@@ -236,10 +236,10 @@ $calendar = new Calendar();
         .day-column {
             min-width: 120px;
         }
-
-        .hover\:text-blue-600:hover {
-            color: #2563eb;
-        }
+        /**/
+        /*.hover\:text-blue-600:hover {*/
+        /*    color: #2563eb;*/
+        /*}*/
     </style>
     <?php echo $calendar->generateSampleTasks(); ?>
 </head>
@@ -293,6 +293,7 @@ $calendar = new Calendar();
             
             // Calculate positions
             const top = startHours * HOUR_HEIGHT;
+            console.log(startHours, top)
             const height = (endHours - startHours) * HOUR_HEIGHT;
             
             return { top, height };
