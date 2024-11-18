@@ -10,9 +10,14 @@ ENV PHP_PM_MAX_CHILDREN=10 \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         nginx \
+        curl \
+        php${PHP_VERSION}-curl \
         php${PHP_VERSION}-fpm \
         php${PHP_VERSION}-pgsql \
+        ca-certificates \ # curl no worky without
         supervisor
+
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 RUN ln -sf /usr/sbin/php-fpm${PHP_VERSION} /usr/sbin/php-fpm
 
