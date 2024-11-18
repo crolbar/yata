@@ -7,6 +7,10 @@ Router::getProtected("/", function () {
     TaskController::index();
 });
 
+Router::getProtected("/d", function () {
+    unset($_SESSION['tasks']);
+});
+
 Router::getProtected("/new", function () {
     Router::view("new");
 });
