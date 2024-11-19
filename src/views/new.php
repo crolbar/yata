@@ -209,7 +209,7 @@ setTasks();
     <body>
         <div class="container mx-auto px-4 py-8 h-screen">
 
-            <div id="navigationContainer">
+            <div id="navigation-container">
                 <?= renderNavigationControls($week_start) ?>
             </div>
             <div
@@ -320,7 +320,7 @@ function renderNavigationControls(DateTime $week_start): string
                 <button id='calendar-dialog-prev-month' class="p-2">
                     &lt;
                 </button>
-                <h3 id="calendarMonth" class="text-xl font-bold"></h3>
+                <h3 id="calendar-header" class="text-xl font-bold"></h3>
                 <button id='calendar-dialog-next-month' class="p-2">
                     &gt;
                 </button>
@@ -334,7 +334,7 @@ function renderNavigationControls(DateTime $week_start): string
                 <div class="font-bold">Sa</div>
                 <div class="font-bold">Su</div>
             </div>
-            <div id="calendarDays" class="grid grid-cols-7 gap-1">
+            <div id="calendar-days" class="grid grid-cols-7 gap-1">
             </div>
             <div class="mt-4 flex justify-end">
                 <button id="hide-calendar-button" class="px-4 py-2 bg-neutral-800 rounded" >
@@ -472,8 +472,7 @@ function generateCalendarDialogScript(): string
                         }
                     );
 
-                    document.getElementById('calendarMonth').textContent = monthName;
-
+                    document.getElementById('calendar-header').textContent = monthName;
                 }
 
                 const {start, end} = getBoundaries();
@@ -524,7 +523,7 @@ function generateCalendarDialogScript(): string
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
 
-                document.getElementById('calendarDays').innerHTML = html;
+                document.getElementById('calendar-days').innerHTML = html;
 
                 document.querySelectorAll('#select-week').forEach(button => 
                     button.addEventListener('click', () => { selectWeek(button.dataset.weekstart) })
