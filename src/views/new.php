@@ -11,7 +11,7 @@ function setTasks()
     }
     $date = new DateTime();
 
-    $monday     = clone $date->modify('2024-10-30');
+    $monday     = clone $date->modify('2024-09-30');
     $wednesday  = clone $date->modify('2024-11-30');
     $thursday   = clone $date->modify('2024-11-20');
 
@@ -353,7 +353,6 @@ function generateCalendarDialogScript(): string
         <script>
             let currentCalendarDate = new Date();
 
-
             function changeWeek(offset) {
                 const getNewWeek = (headerCells) => {
                     const currentDate = new Date(headerCells[0].dataset.date);
@@ -417,26 +416,19 @@ function generateCalendarDialogScript(): string
             }
 
 
-            function changeMonth(offset) {
-                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
-                renderCalendar();
-            }
-
-            function selectWeek(dateString) {
-                console.log(dateString)
-
-                const selectedDate = new Date(dateString);
-                const currentFirstDay = new Date(document.querySelector('#grid-header-container .grid > div:not(:first-child)').dataset.date);
-
-                const weeksDiff = Math.round((selectedDate - currentFirstDay) / (7 * 24 * 60 * 60 * 1000));
-
-                changeWeek(weeksDiff);
-
-                toggleCalendarDialog();
-            }
-
 
             function renderCalendar() {
+                const selectWeek = (dateString) => {
+                    const selectedDate = new Date(dateString);
+                    const currentFirstDay = new Date(document.querySelector('#grid-header-container .grid > div:not(:first-child)').dataset.date);
+
+                    const weeksDiff = Math.round((selectedDate - currentFirstDay) / (7 * 24 * 60 * 60 * 1000));
+
+                    changeWeek(weeksDiff);
+
+                    toggleCalendarDialog();
+                }
+
                 const getBoundaries = () => {
                     const year = currentCalendarDate.getFullYear();
                     const month = currentCalendarDate.getMonth();
@@ -512,15 +504,16 @@ function generateCalendarDialogScript(): string
                     }
 
                     html += `
-                        <div 
-                            onclick="selectWeek('\${currentWeekStartString}')"
+                        <button
+                            id='select-week'
                             class="calendar-day p-2 text-center cursor-pointer rounded
-                                   \${isCurrentMonth ? '' : 'text-gray-400'} 
+                                   \${isCurrentMonth ? '' : 'text-gray-400'}
                                    \${isSelectedWeek ? 'bg-neutral-500 text-white' : ''}"
                             data-date="\${dateString}"
+                            data-weekstart='\${currentWeekStartString}'
                         >
                             \${currentDate.getDate()}
-                        </div>
+                        </button>
                     `;
 
 
@@ -532,6 +525,11 @@ function generateCalendarDialogScript(): string
                 }
 
                 document.getElementById('calendarDays').innerHTML = html;
+
+                document.querySelectorAll('#select-week').forEach(button => 
+                    button.addEventListener('click', () => { selectWeek(button.dataset.weekstart) })
+                )
+
                 addWeekHoverEffect();
                 setHeader();
             }
@@ -547,6 +545,11 @@ function generateCalendarDialogScript(): string
                 } else {
                     dialog.classList.add('hidden');
                 }
+            }
+
+            function changeMonth(offset) {
+                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
+                renderCalendar();
             }
 
             function InitListeners() {
