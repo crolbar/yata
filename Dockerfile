@@ -14,7 +14,7 @@ RUN apt-get update && \
         php${PHP_VERSION}-curl \
         php${PHP_VERSION}-fpm \
         php${PHP_VERSION}-pgsql \
-        ca-certificates \ # curl no worky without
+        ca-certificates \
         supervisor
 
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
