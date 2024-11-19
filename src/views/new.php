@@ -209,6 +209,7 @@ setTasks();
     <body>
         <div class="container mx-auto px-4 py-8 h-screen">
 
+            <button id="refresh">refresh</button>
             <div id="navigation-container">
                 <?= renderNavigationControls($week_start) ?>
             </div>
@@ -266,6 +267,41 @@ setTasks();
 
                 dayColumn.insertAdjacentHTML("beforeend", task);
             }
+
+
+            const sendRequest = (path, method, data) => {
+                fetch(path, {
+                    method: method,
+                    body: data,
+                })
+                .then(response => response.json())
+                .then(resp => loadTasks(resp))
+                .catch(error => console.error('Error: ', error));
+            }
+
+            function loadTasks(resp) {
+                console.log(resp);
+
+                for (task of resp) {
+                    const start = parseInt(task.start_time);
+                    const end = parseInt(task.end_time);
+                    const date = new Date(start * 1000).toLocaleDateString('en-CA');
+                    const title = task.title;
+
+                    loadTask(date, title,  start, end)
+                }
+            }
+
+            function fetchTasks() {
+                sendRequest('ajax/task/fetchall', 'GET', null)
+                document.querySelectorAll('#task-block').forEach(task => task.remove());
+            }
+
+            fetchTasks();
+
+            document.getElementById('refresh').addEventListener("click", () => {
+                fetchTasks();
+            })
 
 
             function loadInitTasks() {
@@ -409,10 +445,7 @@ function generateCalendarDialogScript(): string
                 updateNavigationHeader(week);
                 updateGrid(week);
 
-                document.querySelectorAll('#task-block').forEach(task => task.remove());
-
-                // TODO
-                loadInitTasks();
+                fetchTasks();
             }
 
 

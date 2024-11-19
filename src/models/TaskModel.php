@@ -11,7 +11,15 @@ class TaskModel
     {
         $pdo    = Database::getConnection();
 
-        $query  = "SELECT id, title FROM tasks WHERE owner = :owner_id";
+        $query  = <<<SQL
+        SELECT
+        id,
+        title,
+        EXTRACT(EPOCH FROM start_time) as start_time,
+        EXTRACT(EPOCH FROM end_time) as end_time
+        FROM tasks
+        WHERE owner = :owner_id;
+        SQL;
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":owner_id", $owner_id, PDO::PARAM_INT);
