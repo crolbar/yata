@@ -11,9 +11,9 @@ function setTasks()
     }
     $date = new DateTime();
 
-    $monday     = clone $date->modify('monday this week');
-    $wednesday  = clone $date->modify('wednesday this week');
-    $thursday   = clone $date->modify('thursday this week');
+    $monday     = clone $date->modify('2024-10-30');
+    $wednesday  = clone $date->modify('2024-11-30');
+    $thursday   = clone $date->modify('2024-11-20');
 
 
     $_SESSION["tasks"] = [
@@ -62,7 +62,10 @@ function renderTimeColumn(): string
 
     foreach (generateTimeSlots() as $time_slot) {
         $time_column .= <<<HTML
-            <div class="time-cell h-[60px] relative p-2 border-t border-neutral-500">
+        <div
+            id="time-cell"
+            class="h-[60px] relative p-2 border-t border-neutral-500"
+        >
                 $time_slot
             </div>\n
         HTML;
@@ -80,7 +83,8 @@ function renderDayColumn(DateTime $day): string
 
         $day_column .= <<<HTML
             <div 
-                class="time-cell h-[60px] relative p-2 border-t border-neutral-500" 
+                id="time-cell"
+                class="h-[60px] relative p-2 border-t border-neutral-500" 
                 data-date="$dateFmt"
                 data-time="$time_slot"
             >
@@ -89,7 +93,7 @@ function renderDayColumn(DateTime $day): string
     }
 
     return <<<HTML
-        <div class="day-column relative min-w-[120px] border-l border-neutral-500">
+        <div id="day-column" class="relative min-w-[80px] border-l border-neutral-500">
             $day_column
         </div>\n
     HTML;
@@ -115,9 +119,9 @@ function renderGrid(DateTime $week_start): string
     HTML;
 }
 
-function renderGridHeader($week_start): string
+function renderGridHeader(DateTime $week_start): string
 {
-    $header = '<div class="p-2 bg-neutral-800"></div>';
+    $header = '';
 
     foreach (generateWeekDays($week_start) as $day) {
         $ymd = $day->format('Y-m-d');
@@ -137,8 +141,9 @@ function renderGridHeader($week_start): string
     }
 
     return <<<HTML
-        <div id="headerContainer">
+        <div id="grid-header-container">
             <div class="grid grid-cols-8 gap-1 bg-neutral-800 sticky top-0 z-10">
+                <div class="p-2 bg-neutral-800"></div>
                 $header
             </div>
         </div>
@@ -154,8 +159,9 @@ function renderTaskBlock(
 ): string {
     return <<<HTML
         <div 
+            id="task-block"
             class='
-            task-block left-1 right-0 hover:bg-neutral-700 bg-neutral-600
+            left-1 right-0 hover:bg-neutral-700 bg-neutral-600
             opacity-80 hover:opacity-100 z-20 overflow-hidden transition-all
             duration-100 absolute border-t border-red-800
             '
@@ -202,7 +208,14 @@ setTasks();
     </head>
     <body>
         <div class="container mx-auto px-4 py-8 h-screen">
-            <div class="shadow-lg rounded-lg overflow-hidden mt-4">
+
+            <div id="navigationContainer">
+                <?= renderNavigationControls($week_start) ?>
+            </div>
+            <div
+                id='grid'
+                class="shadow-lg rounded-lg overflow-hidden mt-4"
+            >
                 <?= renderGridHeader($week_start) ?>
 
                 <?= renderGrid($week_start) ?>
@@ -228,10 +241,10 @@ setTasks();
                     return { top, height };
                 }
 
-                const { top, height } = calculateTaskPosition(start, end);
-
-                const dayColumn = document.querySelector(`.day-column:has([data-date="${date}"])`);
+                const dayColumn = document.querySelector(`#day-column:has([data-date="${date}"])`);
                 if (!dayColumn) return;
+
+                const { top, height } = calculateTaskPosition(start, end);
 
                 const formatTime = (unixTimestamp) => {
                     const time = new Date(unixTimestamp * 1000);
@@ -267,5 +280,298 @@ setTasks();
 
             loadInitTasks();
         </script>
+        <?= generateCalendarDialogScript() ?>
     </body>
 </html>
+
+<?php
+function renderNavigationControls(DateTime $week_start): string
+{
+    return <<<HTML
+    <div class="flex justify-between items-center p-4">
+        <button 
+            id='prev-week'
+            class='px-4 py-2 opacity-80 hover:opacity-100 hover:bg-neutral-800 border border-neutral-800 rounded'
+        >
+            Previous Week
+        </button>
+
+        <h2 
+            id="nav-header"
+            class='text-xl font-bold cursor-pointer hover:text-neutral-600'
+        >
+            {$week_start->format('F j, Y')}
+        </h2>
+
+        <button
+            id='next-week'
+            class='px-4 py-2 opacity-80 hover:opacity-100 hover:bg-neutral-800 border border-neutral-800 rounded'
+        >
+            Next Week
+        </button>
+    </div>
+
+    <div
+        id="calendar-dialog"
+        class="hidden fixed inset-0 bg-gray-500 bg-opacity-20 flex justify-center z-50"
+    >
+        <div class="p-6 absolute top-[20%]  rounded-lg shadow-xl ">
+            <div class="flex justify-between items-center mb-4">
+                <button id='calendar-dialog-prev-month' class="p-2">
+                    &lt;
+                </button>
+                <h3 id="calendarMonth" class="text-xl font-bold"></h3>
+                <button id='calendar-dialog-next-month' class="p-2">
+                    &gt;
+                </button>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                <div class="font-bold">Mo</div>
+                <div class="font-bold">Tu</div>
+                <div class="font-bold">We</div>
+                <div class="font-bold">Th</div>
+                <div class="font-bold">Fr</div>
+                <div class="font-bold">Sa</div>
+                <div class="font-bold">Su</div>
+            </div>
+            <div id="calendarDays" class="grid grid-cols-7 gap-1">
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="hide-calendar-button" class="px-4 py-2 bg-neutral-800 rounded" >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    HTML;
+}
+
+
+function generateCalendarDialogScript(): string
+{
+    return <<<HTML
+        <script>
+            let currentCalendarDate = new Date();
+
+
+            function changeWeek(offset) {
+                const getNewWeek = (headerCells) => {
+                    const currentDate = new Date(headerCells[0].dataset.date);
+                    currentDate.setDate(currentDate.getDate() + (offset * 7));
+
+                    let week = [];
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(currentDate);
+                        date.setDate(date.getDate() + i);
+                        week.push(date);
+                    }
+
+                    return week;
+                }
+
+                const updateGridHeader = (week, headerCells) => {
+                    headerCells.forEach((cell, index) => {
+                        const date = week[index];
+
+                        const weekDay = date.toLocaleDateString('en-US', { weekday: 'short' })
+                        const monthDay = date.getDate();
+                        const month = date.toLocaleDateString('en-US', { month: 'short' });
+
+                        cell.innerHTML = `\${weekDay}<br>\${monthDay} \${month}`;
+                        cell.dataset.date = date.toLocaleDateString('en-CA');
+                    });
+                }
+
+                const updateNavigationHeader = (week) => {
+                    const navigationHeader = document.querySelector('#nav-header');
+                    navigationHeader.textContent = week[0].toLocaleDateString(
+                        'en-US', { day: 'numeric', month: 'long', year: 'numeric' }
+                    );
+                }
+
+                const updateGrid = (week) => {
+                    const dayColumns = document.querySelectorAll('#day-column');
+
+                    dayColumns.forEach((column, index) => {
+                        const cells = column.querySelectorAll('#time-cell');
+                        const date = week[index].toLocaleDateString('en-CA');
+                        cells.forEach(cell => {
+                            cell.dataset.date = date;
+                        });
+                    });
+
+                }
+
+                const headerCells = document.querySelectorAll('#grid-header-container .grid > div:not(:first-child)');
+
+                const week = getNewWeek(headerCells);
+
+                updateGridHeader(week, headerCells);
+                updateNavigationHeader(week);
+                updateGrid(week);
+
+                document.querySelectorAll('#task-block').forEach(task => task.remove());
+
+                // TODO
+                loadInitTasks();
+            }
+
+
+            function changeMonth(offset) {
+                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
+                renderCalendar();
+            }
+
+            function selectWeek(dateString) {
+                console.log(dateString)
+
+                const selectedDate = new Date(dateString);
+                const currentFirstDay = new Date(document.querySelector('#grid-header-container .grid > div:not(:first-child)').dataset.date);
+
+                const weeksDiff = Math.round((selectedDate - currentFirstDay) / (7 * 24 * 60 * 60 * 1000));
+
+                changeWeek(weeksDiff);
+
+                toggleCalendarDialog();
+            }
+
+
+            function renderCalendar() {
+                const getBoundaries = () => {
+                    const year = currentCalendarDate.getFullYear();
+                    const month = currentCalendarDate.getMonth();
+
+                    const start = new Date(year, month, 1);
+                    const end = new Date(year, month + 1, 0);
+
+                    start.setDate(start.getDate() - (start.getDay() || 7) + 1);
+                    end.setDate(end.getDate() + (7 - end.getDay()));
+                    return {start, end}
+                }
+
+                const getWeekStart = (date) => {
+                    const weekStart = new Date(date);
+                    weekStart.setDate(weekStart.getDate() - (weekStart.getDay() || 7) + 1);
+                    weekStart.setHours(0, 0, 0, 0);
+                    return weekStart;
+                }
+
+                const addWeekHoverEffect = () => {
+                    document.querySelectorAll('.week-row').forEach(weekRow => {
+                        const handleHover = (event, shouldAdd) => {
+                            weekRow.querySelectorAll('.calendar-day').forEach(day => {
+                                day.classList.toggle('bg-neutral-600', shouldAdd);
+                            });
+                        };
+
+                        weekRow.addEventListener('mouseenter', (e) => handleHover(e, true));
+                        weekRow.addEventListener('mouseleave', (e) => handleHover(e, false));
+                    });
+                }
+
+                const setHeader = () => {
+                    const year = currentCalendarDate.getFullYear();
+                    const month = currentCalendarDate.getMonth();
+                    const monthName = new Date(year, month).toLocaleString(
+                        'default',
+                        {
+                            month: 'long',
+                            year: 'numeric',
+                        }
+                    );
+
+                    document.getElementById('calendarMonth').textContent = monthName;
+
+                }
+
+                const {start, end} = getBoundaries();
+                const selectedWeek = getWeekStart(
+                    new Date(document.querySelector('#grid-header-container .grid > div:not(:first-child)').dataset.date)
+                );
+
+                let html = '';
+                let currentDate = new Date(start);
+                let weekCounter = 0;
+
+                while (currentDate <= end) {
+                    const isCurrentMonth = currentDate.getMonth() === currentCalendarDate.getMonth();
+                    const isWeekStart = currentDate.getDay() === 1;
+                    const isWeekEnd = currentDate.getDay() === 0;
+                    const dateString = currentDate.toLocaleDateString('en-CA');
+
+                    const currentWeekStart = getWeekStart(currentDate);
+                    const currentWeekStartString = currentWeekStart.toLocaleDateString('en-CA');
+
+                    const isSelectedWeek = currentWeekStart.getTime() === selectedWeek.getTime();
+
+                    if (isWeekStart) {
+                        html += `<div class="week-row col-span-7 grid grid-cols-7 gap-1" 
+                                     data-week="\${weekCounter}" 
+                                     data-start-date="\${currentWeekStartString}">`;
+                        weekCounter++;
+                    }
+
+                    html += `
+                        <div 
+                            onclick="selectWeek('\${currentWeekStartString}')"
+                            class="calendar-day p-2 text-center cursor-pointer rounded
+                                   \${isCurrentMonth ? '' : 'text-gray-400'} 
+                                   \${isSelectedWeek ? 'bg-neutral-500 text-white' : ''}"
+                            data-date="\${dateString}"
+                        >
+                            \${currentDate.getDate()}
+                        </div>
+                    `;
+
+
+                    if (isWeekEnd) {
+                        html += `</div>`;
+                    }
+
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                document.getElementById('calendarDays').innerHTML = html;
+                addWeekHoverEffect();
+                setHeader();
+            }
+
+            function toggleCalendarDialog() {
+                const dialog = document.getElementById('calendar-dialog');
+
+                if (dialog.classList.contains('hidden')) {
+                    const headerDate = document.querySelector('#grid-header-container .grid > div:not(:first-child)').dataset.date;
+                    currentCalendarDate = new Date(headerDate);
+                    renderCalendar();
+                    dialog.classList.remove('hidden');
+                } else {
+                    dialog.classList.add('hidden');
+                }
+            }
+
+            function InitListeners() {
+                document.getElementById('nav-header').addEventListener("click", toggleCalendarDialog);
+                document.getElementById('hide-calendar-button').addEventListener("click", toggleCalendarDialog);
+
+                document.getElementById('calendar-dialog-prev-month').addEventListener("click", () => {
+                    changeMonth(-1);
+                })
+
+                document.getElementById('calendar-dialog-next-month').addEventListener("click", () => {
+                    changeMonth(1);
+                })
+
+                document.getElementById('prev-week').addEventListener("click", () => {
+                    changeWeek(-1);
+                })
+
+                document.getElementById('next-week').addEventListener("click", () => {
+                    changeWeek(1);
+                })
+            }
+
+            InitListeners();
+        </script>
+    HTML;
+}
+?>
