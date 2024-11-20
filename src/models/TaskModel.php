@@ -48,20 +48,36 @@ class TaskModel
         $stmt->execute();
     }
 
-    public static function createTask(string $title, int $owner_id): void
-    {
+    public static function createTask(
+        string $title,
+        int $start_time,
+        int $end_time,
+        int $owner_id,
+    ): void {
         $pdo    = Database::getConnection();
 
         $query  = <<<SQL
         INSERT INTO tasks
-            (title, owner)
+            (
+                title,
+                start_time,
+                end_time,
+                owner
+            )
         VALUES 
-            (:title, :owner);
+            (
+                :title,
+                to_timestamp(:start_time),
+                to_timestamp(:end_time),
+                :owner
+            );
         SQL;
 
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":title", $title, PDO::PARAM_STR);
+        $stmt->bindValue(":start_time", $start_time, PDO::PARAM_INT);
+        $stmt->bindValue(":end_time", $end_time, PDO::PARAM_INT);
         $stmt->bindValue(":owner", $owner_id, PDO::PARAM_INT);
 
         $stmt->execute();
