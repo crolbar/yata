@@ -83,23 +83,33 @@ class TaskModel
         $stmt->execute();
     }
 
-    public static function updateTask(int $id, string $title, int $owner_id): void
+    public static function updateTask(
+        int $id,
+        string $title,
+        int $start_time,
+        int $end_time,
+        int $owner_id,
+    ): void
     {
         $pdo    = Database::getConnection();
 
         $query  = <<<SQL
         UPDATE tasks SET
-        title = :title,
-        updated_at = CURRENT_TIMESTAMP
+        title       = :title,
+        start_time  = to_timestamp(:start_time),
+        end_time    = to_timestamp(:end_time),
+        updated_at  = CURRENT_TIMESTAMP
         WHERE
-        id = :id AND
-        owner = :owner_id;
+        id      = :id AND
+        owner   = :owner_id;
         SQL;
 
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":title", $title, PDO::PARAM_STR);
         $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":start_time", $start_time, PDO::PARAM_INT);
+        $stmt->bindValue(":end_time", $end_time, PDO::PARAM_INT);
         $stmt->bindValue(":owner_id", $owner_id, PDO::PARAM_INT);
 
         $stmt->execute();

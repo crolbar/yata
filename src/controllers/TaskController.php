@@ -50,8 +50,8 @@ class TaskController
         }
 
         $title      = $json_payload["title"];
-        $start_time = $json_payload["start_time"];
-        $end_time   = $json_payload["end_time"];
+        $start_time = (int)$json_payload["start_time"];
+        $end_time   = (int)$json_payload["end_time"];
         $owner_id   = (int)$_SESSION["id"];
 
         TaskModel::createTask(
@@ -74,11 +74,19 @@ class TaskController
             exit;
         }
 
-        $title      = $json_payload["title"];
         $id         = (int)$json_payload["id"];
+        $title      = $json_payload["title"];
+        $start_time = (int)$json_payload["start_time"];
+        $end_time   = (int)$json_payload["end_time"];
         $owner_id   = (int)$_SESSION["id"];
 
-        TaskModel::updateTask($id, $title, $owner_id);
+        TaskModel::updateTask(
+            $id,
+            $title,
+            $start_time,
+            $end_time,
+            $owner_id,
+        );
         echo self::fetchAll();
     }
 }

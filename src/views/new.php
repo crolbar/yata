@@ -49,10 +49,12 @@ function renderTimeColumn(): string
 
 function renderDayColumn(DateTime $day): string
 {
+    $week_day_name = strtolower($day->format('l'));
     $day_column = '';
 
     foreach (generateTimeSlots() as $time_slot) {
         $dateFmt = $day->format('Y-m-d');
+
 
         $day_column .= <<<HTML
             <div 
@@ -66,7 +68,7 @@ function renderDayColumn(DateTime $day): string
     }
 
     return <<<HTML
-        <div id="day-column" class="relative min-w-[80px] border-l border-neutral-500">
+        <div id="day-column" data-week="$week_day_name" class="relative min-w-[80px] border-l border-neutral-500">
             $day_column
         </div>\n
     HTML;
@@ -82,7 +84,7 @@ function renderGrid(DateTime $week_start): string
     }
 
     return <<<HTML
-        <div id="grid-container" class="grid grid-cols-8 gap-1 overflow-auto h-[800px]">
+        <div id="grid-container" class="grid grid-cols-8 gap-1 scrollbar-none overflow-auto h-[800px]">
             <div id="time-column">
                 $time_column
             </div>
@@ -149,8 +151,19 @@ function renderTaskBlock(
                     <button
                         id="task-delete"
                         data-id="{$id}"
-                        class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-xl cursor-pointer bg-transparent duration-200 text-red-500"
+                        class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 hover:text-red-800 text-xl cursor-pointer bg-transparent duration-200 text-red-500"
                     >x</button>
+
+                    <button
+                        id="task-edit"
+                        data-id="{$id}"
+                        data-title="{$title}"
+                        data-start-time="{$start_time}"
+                        data-end-time="{$end_time}"
+                        class="absolute top-7 right-1 text-xl hover:fill-green-800 fill-green-500 opacity-0 group-hover:opacity-100 hover:text-red-800 cursor-pointer bg-transparent duration-200"
+                    >
+                        <svg class="inline w-3 h-3 bg-transparent" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M362.7 19.3L314.3 67.7 444.3 197.7l48.4-48.4c25-25 25-65.5 0-90.5L453.3 19.3c-25-25-65.5-25-90.5 0zm-71 71L58.6 323.5c-10.4 10.4-18 23.3-22.2 37.4L1 481.2C-1.5 489.7 .8 498.8 7 505s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L421.7 220.3 291.7 90.3z"/></svg>
+                    </button>
                 </div>
 
                 <div class="bg-transparent text-sm">$start_time - $end_time</div>
@@ -240,6 +253,9 @@ function generateTaskDialog(): string
                 </div>
 
 
+                <!--  UPDATE ONLY ID  -->
+                <input id='task-id' class='hidden' type='text' name="task-id" value="-1">
+
                 <div class="flex justify-end gap-2">
                     <button
                         type="button"
@@ -319,6 +335,25 @@ $week_start = clone $date->modify('monday this week');
                 return {start, end}
             }
 
+            function startUpdateTastDialog(b) {
+                const form = document.querySelector('#task-form');
+
+                const id = b.dataset.id
+                const title = b.dataset.title
+                const start = b.dataset["startTime"]
+                const end = b.dataset["endTime"]
+
+                const week = b.parentNode.parentNode.parentNode.parentNode.dataset.week;
+
+                form.querySelector('#task-title').value = title
+                form.querySelector(`#task-${week}`).checked = true;
+                form.querySelector(`#task-start`).value = start
+                form.querySelector(`#task-end`).value = end
+                form.querySelector(`#task-id`).value = id
+
+                toggleTaskDialog();
+            }
+
             function loadTask(date, title, start, end, id) {
                 const calculateTaskPosition = (startTime, endTime) => {
                     const parseTime = (unixTimestamp) => {
@@ -374,8 +409,7 @@ $week_start = clone $date->modify('monday this week');
                 .catch(error => console.error('Error: ', error));
             }
 
-            const addTask = (form) => {
-                const formData = Object.fromEntries(new FormData(form).entries())
+            const addTask = (formData) => {
                 const {start, end} = getStartEndTimeTaskDialog(formData)
 
                 sendRequest('ajax/task/create',
@@ -386,13 +420,24 @@ $week_start = clone $date->modify('monday this week');
                         end_time: end,
                     })
                 )
-
-                form.reset()
             }
 
             const deleteTask = (id) => {
                 sendRequest('ajax/task/delete', 'POST',
                     JSON.stringify({ id: id }) 
+                )
+            }
+
+            const updateTask = (formData) => {
+                const {start, end} = getStartEndTimeTaskDialog(formData)
+
+                sendRequest('ajax/task/update', 'POST',
+                    JSON.stringify({
+                        title: formData["task-title"],
+                        start_time: start,
+                        end_time: end,
+                        id: formData["task-id"]
+                    }) 
                 )
             }
 
@@ -418,11 +463,14 @@ $week_start = clone $date->modify('monday this week');
                 sendRequest('ajax/task/fetchall', 'GET', null)
             }
 
+            // tmp
             document.getElementById('refresh').addEventListener("click", () => {
                 fetchTasks();
             })
 
+            // tmp
             document.getElementById('add').addEventListener("click", () => {
+                document.querySelector('#task-form').reset()
                 toggleTaskDialog();
             })
 
@@ -432,7 +480,15 @@ $week_start = clone $date->modify('monday this week');
 
             document.getElementById('task-form').addEventListener('submit', (e) => {
                 e.preventDefault()
-                addTask(e.target);
+                const formData = Object.fromEntries(new FormData(e.target).entries())
+                const isCreateForm = formData["task-id"] == -1
+
+                if (isCreateForm) {
+                    addTask(formData);
+                } else {
+                    updateTask(formData)
+                }
+
                 toggleTaskDialog();
             });
 
@@ -440,6 +496,12 @@ $week_start = clone $date->modify('monday this week');
             function initTaskBlockListeners() {
                 document.querySelectorAll('#task-delete').forEach((b) => {
                     b.addEventListener('click', () => deleteTask(b.dataset.id))
+                })
+
+                document.querySelectorAll('#task-edit').forEach((b) => {
+                    b.addEventListener('click', () => {
+                        startUpdateTastDialog(b);
+                    })
                 })
             }
 
