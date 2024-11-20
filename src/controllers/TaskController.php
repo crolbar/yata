@@ -48,10 +48,19 @@ class TaskController
             echo "ERROR: no title provided";
             exit;
         }
-        $title = $json_payload["title"];
-        $owner_id = (int)$_SESSION["id"];
 
-        TaskModel::createTask($title, $owner_id);
+        $title      = $json_payload["title"];
+        $start_time = $json_payload["start_time"];
+        $end_time   = $json_payload["end_time"];
+        $owner_id   = (int)$_SESSION["id"];
+
+        TaskModel::createTask(
+            $title,
+            $start_time,
+            $end_time,
+            $owner_id,
+        );
+
         echo self::fetchAll();
     }
 

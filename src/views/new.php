@@ -1,32 +1,5 @@
 <?php
 
-// REMOVE THIS !!!!
-date_default_timezone_set('EET');
-
-function setTasks()
-{
-
-    if (isset($_SESSION['tasks'])) {
-        return;
-    }
-    $date = new DateTime();
-
-    $monday     = clone $date->modify('2024-09-30');
-    $wednesday  = clone $date->modify('2024-11-30');
-    $thursday   = clone $date->modify('2024-11-20');
-
-
-    $_SESSION["tasks"] = [
-        [ "date" => $monday->format('Y-m-d'),    "title" => 'Team Meeting',      "start" => $monday->modify('10:15')->format('U'),      "end" => $monday->modify('14:30')->format('U') ],
-        [ "date" => $wednesday->format('Y-m-d'), "title" => 'Lunch Break',       "start" => $wednesday->modify('12:30')->format('U'),   "end" => $wednesday->modify('15:00')->format('U') ],
-        [ "date" => $thursday->format('Y-m-d'),  "title" => 'Project Review',    "start" => $thursday->modify('17:00')->format('U'),    "end" => $thursday->modify('20:30')->format('U') ]
-    ];
-
-    //echo json_encode($_SESSION["tasks"]);
-    //exit;
-}
-
-
 /**
  * @return string[]
  */
@@ -62,11 +35,11 @@ function renderTimeColumn(): string
 
     foreach (generateTimeSlots() as $time_slot) {
         $time_column .= <<<HTML
-        <div
-            id="time-cell"
-            class="h-[60px] relative p-2 border-t border-neutral-500"
-        >
-                $time_slot
+            <div
+                id="time-cell"
+                class="h-[60px] relative p-2 border-t border-neutral-500"
+            >
+            $time_slot
             </div>\n
         HTML;
     }
@@ -125,11 +98,13 @@ function renderGridHeader(DateTime $week_start): string
 
     foreach (generateWeekDays($week_start) as $day) {
         $ymd = $day->format('Y-m-d');
+        $week_day_name = strtolower($day->format('l'));
         $week_day = $day->format('D');
         $month_day_month = $day->format('j M');
 
         $header .= <<<HTML
         <div 
+            id="grid-header-$week_day_name"
             class="p-2 text-center bg-neutral-800"
             data-date="$ymd"
         >
@@ -194,9 +169,92 @@ function genereteJSTasks(): string
 }
 
 
+function generateTaskDialog(): string
+{
+    return <<<HTML
+    <div id="task-dialog" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="p-6 rounded-lg shadow-xl w-96">
+            <h3 class="text-xl font-bold mb-4">Add New Task</h3>
+
+            <form id="task-form">
+
+                <!--  TITLE  -->
+                <div class="mb-4">
+                    <label class="block mb-2">Title</label>
+                    <input type="text" id="task-title" name="task-title" class="w-full px-3 py-2 border border-neutral-800 rounded" required>
+                </div>
+
+                <!--  DATE  -->
+                <div class="mb-4 flex gap-[3px]">
+                    <div>
+                        <input type='radio' name='week-day' value="monday" id="task-monday" class='hidden peer' required checked>
+                        <label for='task-monday' class="px-3 py-2 border border-neutral-800 rounded cursor-pointer peer-checked:bg-neutral-700 peer-checked:hover:bg-neutral-600 hover:bg-neutral-800 transition-colors duration-200">Mo</label>
+                    </div>
+                    <div>
+                        <input type='radio' name='week-day' value="tuesday" id="task-tuesday" class='hidden peer' required>
+                        <label for='task-tuesday' class="px-3 py-2 border border-neutral-800 rounded cursor-pointer peer-checked:bg-neutral-700 peer-checked:hover:bg-neutral-600 hover:bg-neutral-800 transition-colors duration-200">Tu</label>
+                    </div>
+                    <div>
+                        <input type='radio' name='week-day' value="wednesday" id="task-wednesday" class='hidden peer' required>
+                        <label for='task-wednesday' class="px-3 py-2 border border-neutral-800 rounded cursor-pointer peer-checked:bg-neutral-700 peer-checked:hover:bg-neutral-600 hover:bg-neutral-800 transition-colors duration-200">We</label>
+                    </div>
+                    <div>
+                        <input type='radio' name='week-day' value="thursday" id="task-thursday" class='hidden peer' required>
+                        <label for='task-thursday' class="px-3 py-2 border border-neutral-800 rounded cursor-pointer peer-checked:bg-neutral-700 peer-checked:hover:bg-neutral-600 hover:bg-neutral-800 transition-colors duration-200">Th</label>
+                    </div>
+                    <div>
+                        <input type='radio' name='week-day' value="friday" id="task-friday" class='hidden peer' required>
+                        <label for='task-friday' class="px-3 py-2 border border-neutral-800 rounded cursor-pointer peer-checked:bg-neutral-700 peer-checked:hover:bg-neutral-600 hover:bg-neutral-800 transition-colors duration-200">Fr</label>
+                    </div>
+                    <div>
+                        <input type='radio' name='week-day' value="saturday" id="task-saturday" class='hidden peer' required>
+                        <label for='task-saturday' class="px-3 py-2 border border-neutral-800 rounded cursor-pointer peer-checked:bg-neutral-700 peer-checked:hover:bg-neutral-600 hover:bg-neutral-800 transition-colors duration-200">Sa</label>
+                    </div>
+                    <div>
+                        <input type='radio' name='week-day' value="sunday" id="task-sunday" class='hidden peer' required>
+                        <label for='task-sunday' class="px-3 py-2 border border-neutral-800 rounded cursor-pointer peer-checked:bg-neutral-700 peer-checked:hover:bg-neutral-600 hover:bg-neutral-800 transition-colors duration-200">Su</label>
+                    </div>
+                </div>
+
+
+
+                <!--  START TIME  -->
+                <div class="mb-4">
+                    <label class="block mb-2">Start Time</label>
+                    <input type="time" id="task-start" name="task-start" class="w-full px-3 py-2 border border-neutral-800 rounded" value="00:00" required>
+                </div>
+
+                <!--  END TIME  -->
+                <div class="mb-4">
+                    <label class="block mb-2">End Time</label>
+                    <input type="time" id="task-end" name="task-end" class="w-full px-3 py-2 border border-neutral-800 rounded" value="13:37" required>
+                </div>
+
+
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        id='hide-task-dialog'
+                        class="px-4 py-2 opacity-80 hover:opacity-100 hover:bg-neutral-800 border border-neutral-800 rounded"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="px-4 py-2 opacity-80 hover:opacity-100 hover:bg-neutral-800 border border-neutral-800 rounded"
+                    >
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    HTML;
+}
+
 $date       = new DateTime();
 $week_start = clone $date->modify('monday this week');
-setTasks();
 ?>
 
 <!DOCTYPE html>
@@ -210,6 +268,9 @@ setTasks();
         <div class="container mx-auto px-4 py-8 h-screen">
 
             <button id="refresh">refresh</button>
+            <br/>
+            <button id="add">add</button>
+
             <div id="navigation-container">
                 <?= renderNavigationControls($week_start) ?>
             </div>
@@ -223,7 +284,32 @@ setTasks();
             </div>
         </div>
 
+        <?= generateTaskDialog(); ?>
+
         <script>
+            function toggleTaskDialog() {
+                const dialog = document.getElementById('task-dialog')
+
+                if (dialog.classList.contains('hidden')) {
+                    dialog.classList.remove('hidden');
+                    return;
+                }
+
+                dialog.classList.add('hidden');
+            }
+
+            function getStartEndTimeTaskDialog(formData) {
+                const date = document.getElementById('grid-header-' + formData["week-day"]).dataset.date
+
+                const startDate = new Date(`${date}T${formData["task-start"]}:00`)
+                const start = Math.floor(startDate.getTime() / 1000)
+
+                const endDate = new Date(`${date}T${formData["task-end"]}:00`)
+                const end = Math.floor(endDate.getTime() / 1000)
+
+                return {start, end}
+            }
+
             function loadTask(date, title, start, end) {
                 const calculateTaskPosition = (startTime, endTime) => {
                     const parseTime = (unixTimestamp) => {
@@ -268,7 +354,6 @@ setTasks();
                 dayColumn.insertAdjacentHTML("beforeend", task);
             }
 
-
             const sendRequest = (path, method, data) => {
                 fetch(path, {
                     method: method,
@@ -279,9 +364,25 @@ setTasks();
                 .catch(error => console.error('Error: ', error));
             }
 
-            function loadTasks(resp) {
-                console.log(resp);
+            const addTask = (form) => {
+                const formData = Object.fromEntries(new FormData(form).entries())
+                const {start, end} = getStartEndTimeTaskDialog(formData)
 
+                sendRequest('ajax/task/create',
+                    'POST',
+                    JSON.stringify({
+                        title: formData["task-title"],
+                        start_time: start,
+                        end_time: end,
+                    })
+                )
+
+                form.reset()
+            }
+
+
+            function loadTasks(resp) {
+                // TODO
                 for (task of resp) {
                     const start = parseInt(task.start_time);
                     const end = parseInt(task.end_time);
@@ -297,24 +398,25 @@ setTasks();
                 document.querySelectorAll('#task-block').forEach(task => task.remove());
             }
 
-            fetchTasks();
-
             document.getElementById('refresh').addEventListener("click", () => {
                 fetchTasks();
             })
 
+            document.getElementById('add').addEventListener("click", () => {
+                toggleTaskDialog();
+            })
 
-            function loadInitTasks() {
-                const tasks = [
-                    <?= genereteJSTasks() ?>
-                ];
+            document.getElementById('hide-task-dialog').addEventListener("click", () => {
+                toggleTaskDialog();
+            })
 
-                for (task of tasks) {
-                    loadTask(task.date, task.title, task.start, task.end);
-                }
-            }
+            document.getElementById('task-form').addEventListener('submit', (e) => {
+                e.preventDefault()
+                addTask(e.target);
+                toggleTaskDialog();
+            });
 
-            loadInitTasks();
+            fetchTasks();
         </script>
         <?= generateCalendarDialogScript() ?>
     </body>
@@ -373,7 +475,7 @@ function renderNavigationControls(DateTime $week_start): string
             <div id="calendar-days" class="grid grid-cols-7 gap-1">
             </div>
             <div class="mt-4 flex justify-end">
-                <button id="hide-calendar-button" class="px-4 py-2 bg-neutral-800 rounded" >
+                <button id="hide-calendar-button" class="px-4 py-2 opacity-80 hover:opacity-100 hover:bg-neutral-800 border border-neutral-800 rounded">
                     Close
                 </button>
             </div>
@@ -485,7 +587,7 @@ function generateCalendarDialogScript(): string
                     document.querySelectorAll('.week-row').forEach(weekRow => {
                         const handleHover = (event, shouldAdd) => {
                             weekRow.querySelectorAll('.calendar-day').forEach(day => {
-                                day.classList.toggle('bg-neutral-600', shouldAdd);
+                                day.classList.toggle('bg-neutral-700', shouldAdd);
                             });
                         };
 
@@ -539,8 +641,8 @@ function generateCalendarDialogScript(): string
                         <button
                             id='select-week'
                             class="calendar-day p-2 text-center cursor-pointer rounded
-                                   \${isCurrentMonth ? '' : 'text-gray-400'}
-                                   \${isSelectedWeek ? 'bg-neutral-500 text-white' : ''}"
+                                   \${isCurrentMonth ? '' : 'text-neutral-400'}
+                                   \${isSelectedWeek ? 'bg-neutral-800 text-white' : ''}"
                             data-date="\${dateString}"
                             data-weekstart='\${currentWeekStartString}'
                         >
