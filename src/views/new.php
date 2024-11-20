@@ -130,7 +130,8 @@ function renderTaskBlock(
     string $height,
     string $title,
     string $start_time,
-    string $end_time
+    string $end_time,
+    string $id
 ): string {
     return <<<HTML
         <div 
@@ -138,12 +139,20 @@ function renderTaskBlock(
             class='
             left-1 right-0 hover:bg-neutral-700 bg-neutral-600
             opacity-80 hover:opacity-100 z-20 overflow-hidden transition-all
-            duration-100 absolute border-t border-red-800
+            duration-100 absolute border-t border-red-800 group
             '
             style="top: {$top}px; height: {$height}px;"
         >
             <div class="p-2 bg-transparent">
-                <div class="bg-transparent font-bold truncate">$title</div>
+                <div class="flex justify-between bg-transparent w-full">
+                    <div class="bg-transparent font-bold truncate">$title</div>
+                    <button
+                        id="task-delete"
+                        data-id="{$id}"
+                        class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-xl cursor-pointer bg-transparent duration-200 text-red-500"
+                    >x</button>
+                </div>
+
                 <div class="bg-transparent text-sm">$start_time - $end_time</div>
             </div>
         </div>
@@ -310,7 +319,7 @@ $week_start = clone $date->modify('monday this week');
                 return {start, end}
             }
 
-            function loadTask(date, title, start, end) {
+            function loadTask(date, title, start, end, id) {
                 const calculateTaskPosition = (startTime, endTime) => {
                     const parseTime = (unixTimestamp) => {
                         const date = new Date(unixTimestamp * 1000);
@@ -348,7 +357,8 @@ $week_start = clone $date->modify('monday this week');
                     '${height}',
                     '${title}',
                     '${formatTime(start)}',
-                    '${formatTime(end)}'
+                    '${formatTime(end)}',
+                    '${id}'
                 ) ?>`;
 
                 dayColumn.insertAdjacentHTML("beforeend", task);
@@ -380,22 +390,32 @@ $week_start = clone $date->modify('monday this week');
                 form.reset()
             }
 
+            const deleteTask = (id) => {
+                sendRequest('ajax/task/delete', 'POST',
+                    JSON.stringify({ id: id }) 
+                )
+            }
+
 
             function loadTasks(resp) {
+                document.querySelectorAll('#task-block').forEach(task => task.remove());
+
                 // TODO
                 for (task of resp) {
                     const start = parseInt(task.start_time);
                     const end = parseInt(task.end_time);
                     const date = new Date(start * 1000).toLocaleDateString('en-CA');
                     const title = task.title;
+                    const id = task.id;
 
-                    loadTask(date, title,  start, end)
+                    loadTask(date, title,  start, end, id)
                 }
+
+                initTaskBlockListeners()
             }
 
             function fetchTasks() {
                 sendRequest('ajax/task/fetchall', 'GET', null)
-                document.querySelectorAll('#task-block').forEach(task => task.remove());
             }
 
             document.getElementById('refresh').addEventListener("click", () => {
@@ -415,6 +435,13 @@ $week_start = clone $date->modify('monday this week');
                 addTask(e.target);
                 toggleTaskDialog();
             });
+
+
+            function initTaskBlockListeners() {
+                document.querySelectorAll('#task-delete').forEach((b) => {
+                    b.addEventListener('click', () => deleteTask(b.dataset.id))
+                })
+            }
 
             fetchTasks();
         </script>
