@@ -287,8 +287,30 @@ function generateTaskDialog(): string
     HTML;
 }
 
+function renderAccountInfo(string $name, string $picture) {
+    return <<<HTML
+    <svg id="acc-info-trigger" class="absolute flex w-12 h-12 top-0 right-10 fill-neutral-500 hover:fill-neutral-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--!Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M137.4 374.6c12.5 12.5 32.8 12.5 45.3 0l128-128c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8L32 192c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l128 128z"/></svg>
+    <div id="acc-info" class="hidden absolute top-10 right-5 grid items-center justify-items-end border rounded border-neutral-800 drop-shadow-2xl z-20 p-5 w-40 ">
+        <span class="text-2xl">$name</span>
+        <img class="w-14 h-14 object-contain" src="$picture" alt="$name">
+
+        <a
+            class="flex items-center mt-2 border border-neutral-800 hover:bg-neutral-800 gap-2 p-1"
+            href="/logout"
+        >
+            <svg class="inline w-6 h-6 fill-current bg-transparent" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M377.9 105.9L500.7 228.7c7.2 7.2 11.3 17.1 11.3 27.3s-4.1 20.1-11.3 27.3L377.9 406.1c-6.4 6.4-15 9.9-24 9.9c-18.7 0-33.9-15.2-33.9-33.9l0-62.1-128 0c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32l128 0 0-62.1c0-18.7 15.2-33.9 33.9-33.9c9 0 17.6 3.6 24 9.9zM160 96L96 96c-17.7 0-32 14.3-32 32l0 256c0 17.7 14.3 32 32 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-64 0c-53 0-96-43-96-96L0 128C0 75 43 32 96 32l64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32z"/>
+            </svg>
+            Logout
+        </a>
+    </div>
+    HTML;
+}
+
 $date       = new DateTime();
 $week_start = clone $date->modify('monday this week');
+$name       = $_SESSION['name'];
+$picture    = $_SESSION['picture'];
+
 ?>
 
 <!DOCTYPE html>
@@ -313,6 +335,7 @@ $week_start = clone $date->modify('monday this week');
             </div>
         </div>
 
+        <?= renderAccountInfo($name, $picture); ?>
         <?= generateTaskDialog(); ?>
 
         <script>
@@ -356,6 +379,42 @@ $week_start = clone $date->modify('monday this week');
                 form.querySelector(`#task-id`).value = id
 
                 toggleTaskDialog();
+            }
+
+            function initTaskBlockListeners() {
+                document.querySelectorAll('#task-delete').forEach((b) => {
+                    b.addEventListener('click', () => deleteTask(b.dataset.id))
+                })
+
+                document.querySelectorAll('#task-edit').forEach((b) => {
+                    b.addEventListener('click', () => {
+                        startUpdateTastDialog(b);
+                    })
+                })
+            }
+
+            function addAccInfoListeners() {
+                const accInfoTrigger = document.getElementById('acc-info-trigger');
+                const accInfo = document.getElementById('acc-info');
+
+                accInfo.addEventListener('mouseenter', (e) => {
+                    accInfo.classList.toggle('hidden', false);
+                });
+                accInfo.addEventListener('mouseleave', (e) => {
+                    accInfo.classList.toggle('hidden', true);
+                });
+
+                accInfoTrigger.addEventListener('mouseenter', (e) => {
+                    accInfo.classList.toggle('hidden', false);
+                });
+                accInfoTrigger.addEventListener('mouseleave', (e) => {
+                    accInfo.classList.toggle('hidden', true);
+                });
+            }
+
+            function toggleThrobbler() {
+                const svg = document.getElementById('tasks-refresh-svg');
+                svg.classList.toggle('animate-spin')
             }
 
             function loadTask(date, title, start, end, id) {
@@ -465,11 +524,6 @@ $week_start = clone $date->modify('monday this week');
                 toggleThrobbler();
             }
 
-            function toggleThrobbler() {
-                const svg = document.getElementById('tasks-refresh-svg');
-                svg.classList.toggle('animate-spin')
-            }
-
             function fetchTasks() {
                 sendRequest('ajax/task/fetchall', 'GET', null)
             }
@@ -502,18 +556,7 @@ $week_start = clone $date->modify('monday this week');
             });
 
 
-            function initTaskBlockListeners() {
-                document.querySelectorAll('#task-delete').forEach((b) => {
-                    b.addEventListener('click', () => deleteTask(b.dataset.id))
-                })
-
-                document.querySelectorAll('#task-edit').forEach((b) => {
-                    b.addEventListener('click', () => {
-                        startUpdateTastDialog(b);
-                    })
-                })
-            }
-
+            addAccInfoListeners();
             fetchTasks();
         </script>
         <?= generateCalendarDialogScript() ?>
