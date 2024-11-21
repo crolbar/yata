@@ -84,7 +84,7 @@ function renderGrid(DateTime $week_start): string
     }
 
     return <<<HTML
-        <div id="grid-container" class="grid grid-cols-8 gap-1 scrollbar-none overflow-auto h-[800px]">
+        <div id="grid-container" class="grid relative grid-cols-8 gap-1 scrollbar-none overflow-auto h-[800px]">
             <div id="time-column">
                 $time_column
             </div>
@@ -307,6 +307,17 @@ function renderAccountInfo(string $name, string $picture)
     HTML;
 }
 
+function renderCurrTimeBar(string $curr_time): string
+{
+    return <<<HTML
+        <div
+            id="curr-time-bar"
+            class="border border-red-500 w-full absolute"
+            style="top: {$curr_time}px;"
+        ></div>
+    HTML;
+}
+
 $date       = new DateTime();
 $week_start = clone $date->modify('monday this week');
 $name       = $_SESSION['name'];
@@ -411,6 +422,27 @@ $picture    = $_SESSION['picture'];
                 accInfoTrigger.addEventListener('mouseleave', (e) => {
                     accInfo.classList.toggle('hidden', true);
                 });
+            }
+
+            function renderCurrTimeBar() {
+                // remove old if present
+                const oldCurrTimeBar = document.getElementById('curr-time-bar')
+                if (oldCurrTimeBar) {
+                    oldCurrTimeBar.remove()
+                }
+
+
+                let date = new Date();
+                const startHours = date.getHours() + date.getMinutes() / 60;
+                const TIME_CELL_HEIGHT = 60;
+                let currTime = startHours * TIME_CELL_HEIGHT;
+
+                const line = `
+                    <?= renderCurrTimeBar('${currTime}') ?>
+                `;
+
+                const grid = document.getElementById('grid-container');
+                grid.insertAdjacentHTML("beforeend", line)
             }
 
             function toggleThrobbler() {
@@ -521,8 +553,9 @@ $picture    = $_SESSION['picture'];
                     loadTask(date, title,  start, end, id)
                 }
 
-                initTaskBlockListeners()
+                initTaskBlockListeners();
                 toggleThrobbler();
+                renderCurrTimeBar();
             }
 
             function fetchTasks() {
