@@ -517,6 +517,20 @@ $picture    = $_SESSION['picture'];
                 fetch(path, {
                     method: method,
                     body: data,
+                    headers: {
+                        "X_WEEK_START": Math.floor(
+                            new Date(document
+                                .querySelector('#grid-header-container .grid > div:not(:first-child)')
+                                .dataset.date
+                            ).getTime() / 1000
+                        ),
+                        "X_WEEK_END": Math.floor(
+                            new Date(document
+                                .querySelector('#grid-header-container .grid > div:last-child')
+                                .dataset.date
+                            ).getTime() / 1000
+                        ),
+                    }
                 })
                 .then(response => response.json())
                 .then(resp => loadTasks(resp))

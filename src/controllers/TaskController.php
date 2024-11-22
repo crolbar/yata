@@ -11,15 +11,20 @@ class TaskController
     {
         $owner_id = (int)$_SESSION["id"];
 
-        Router::view("home", [
-            "tasks" => TaskModel::fetchAll($owner_id)
-        ]);
+        Router::view("home");
     }
 
     public static function fetchAll(): void
     {
-        $owner_id = (int)$_SESSION["id"];
-        echo json_encode(TaskModel::fetchAll($owner_id));
+        $week_start_unix    = (int)$_SERVER["HTTP_X_WEEK_START"];
+        $week_end_unix      = (int)$_SERVER["HTTP_X_WEEK_END"];
+        $owner_id           = (int)$_SESSION["id"];
+
+        echo json_encode(TaskModel::fetchAll(
+            $owner_id,
+            $week_start_unix,
+            $week_end_unix,
+        ));
     }
 
     public static function deleteTaskById(): void
@@ -36,7 +41,7 @@ class TaskController
         $owner_id   = (int)$_SESSION["id"];
 
         TaskModel::deleteById($id, $owner_id);
-        echo self::fetchAll();
+        self::fetchAll();
     }
 
     public static function createTask(): void
@@ -61,7 +66,7 @@ class TaskController
             $owner_id,
         );
 
-        echo self::fetchAll();
+        self::fetchAll();
     }
 
     public static function updateTaskById(): void
@@ -87,6 +92,6 @@ class TaskController
             $end_time,
             $owner_id,
         );
-        echo self::fetchAll();
+        self::fetchAll();
     }
 }

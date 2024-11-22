@@ -7,8 +7,11 @@ use PDO;
 
 class TaskModel
 {
-    public static function fetchAll(int $owner_id): array|bool
-    {
+    public static function fetchAll(
+        int $owner_id,
+        int $week_start_unix,
+        int $week_end_unix
+    ): array|bool {
         $pdo    = Database::getConnection();
 
         $query  = <<<SQL
@@ -18,11 +21,19 @@ class TaskModel
         EXTRACT(EPOCH FROM start_time) as start_time,
         EXTRACT(EPOCH FROM end_time) as end_time
         FROM tasks
-        WHERE owner = :owner_id;
+        WHERE
+        owner = :owner_id AND
+        start_time
+            BETWEEN
+                to_timestamp(:week_start)::date - INTERVAL '1 day' AND
+                to_timestamp(:week_end)::date + INTERVAL '1 day';
         SQL;
         $stmt   = $pdo->prepare($query);
 
         $stmt->bindValue(":owner_id", $owner_id, PDO::PARAM_INT);
+        $stmt->bindValue(":week_start", $week_start_unix, PDO::PARAM_INT);
+        $stmt->bindValue(":week_end", $week_end_unix, PDO::PARAM_INT);
+
         $stmt->execute();
 
         $res = $stmt->fetchAll();
@@ -89,8 +100,7 @@ class TaskModel
         int $start_time,
         int $end_time,
         int $owner_id,
-    ): void
-    {
+    ): void {
         $pdo    = Database::getConnection();
 
         $query  = <<<SQL
