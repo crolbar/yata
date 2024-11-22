@@ -680,7 +680,8 @@ function generateCalendarDialogScript(): string
 {
     return <<<HTML
         <script>
-            let currentCalendarDate = new Date();
+            const currentDate = new Date();
+            let selectedWeekStart = new Date();
 
             function changeWeek(offset) {
                 const getNewWeek = (headerCells) => {
@@ -756,8 +757,8 @@ function generateCalendarDialogScript(): string
                 }
 
                 const getBoundaries = () => {
-                    const year = currentCalendarDate.getFullYear();
-                    const month = currentCalendarDate.getMonth();
+                    const year = selectedWeekStart.getFullYear();
+                    const month = selectedWeekStart.getMonth();
 
                     const start = new Date(year, month, 1);
                     const end = new Date(year, month + 1, 0);
@@ -788,8 +789,8 @@ function generateCalendarDialogScript(): string
                 }
 
                 const setHeader = () => {
-                    const year = currentCalendarDate.getFullYear();
-                    const month = currentCalendarDate.getMonth();
+                    const year = selectedWeekStart.getFullYear();
+                    const month = selectedWeekStart.getMonth();
                     const monthName = new Date(year, month).toLocaleString(
                         'default',
                         {
@@ -807,25 +808,23 @@ function generateCalendarDialogScript(): string
                 );
 
                 let html = '';
-                let currentDate = new Date(start);
-                let weekCounter = 0;
+                let iterDate = new Date(start);
+                const actualWeekStart = getWeekStart(currentDate)
 
-                while (currentDate <= end) {
-                    const isCurrentMonth = currentDate.getMonth() === currentCalendarDate.getMonth();
-                    const isWeekStart = currentDate.getDay() === 1;
-                    const isWeekEnd = currentDate.getDay() === 0;
-                    const dateString = currentDate.toLocaleDateString('en-CA');
+                while (iterDate <= end) {
+                    const isCurrentMonth = iterDate.getMonth() === selectedWeekStart.getMonth();
+                    const isWeekStart = iterDate.getDay() === 1;
+                    const isWeekEnd = iterDate.getDay() === 0;
+                    const dateString = iterDate.toLocaleDateString('en-CA');
 
-                    const currentWeekStart = getWeekStart(currentDate);
-                    const currentWeekStartString = currentWeekStart.toLocaleDateString('en-CA');
+                    const weekStart = getWeekStart(iterDate);
+                    const weekStartString = weekStart.toLocaleDateString('en-CA');
 
-                    const isSelectedWeek = currentWeekStart.getTime() === selectedWeek.getTime();
+                    const isSelectedWeek = weekStart.getTime() === selectedWeek.getTime();
+                    const isCurrentWeek = weekStart.getTime() === actualWeekStart.getTime();
 
                     if (isWeekStart) {
-                        html += `<div class="week-row col-span-7 grid grid-cols-7 gap-1" 
-                                     data-week="\${weekCounter}" 
-                                     data-start-date="\${currentWeekStartString}">`;
-                        weekCounter++;
+                        html += `<div class="week-row col-span-7 grid grid-cols-7 gap-1">`;
                     }
 
                     html += `
@@ -833,11 +832,12 @@ function generateCalendarDialogScript(): string
                             id='select-week'
                             class="calendar-day p-2 text-center cursor-pointer rounded
                                    \${isCurrentMonth ? '' : 'text-neutral-400'}
-                                   \${isSelectedWeek ? 'bg-neutral-800 text-white' : ''}"
+                                   \${isSelectedWeek ? 'bg-neutral-800' : ''}
+                                   \${isCurrentWeek ? 'text-red-400' : ''}"
                             data-date="\${dateString}"
-                            data-weekstart='\${currentWeekStartString}'
+                            data-weekstart='\${weekStartString}'
                         >
-                            \${currentDate.getDate()}
+                            \${iterDate.getDate()}
                         </button>
                     `;
 
@@ -846,7 +846,7 @@ function generateCalendarDialogScript(): string
                         html += `</div>`;
                     }
 
-                    currentDate.setDate(currentDate.getDate() + 1);
+                    iterDate.setDate(iterDate.getDate() + 1);
                 }
 
                 document.getElementById('calendar-days').innerHTML = html;
@@ -864,7 +864,7 @@ function generateCalendarDialogScript(): string
 
                 if (dialog.classList.contains('hidden')) {
                     const headerDate = document.querySelector('#grid-header-container .grid > div:not(:first-child)').dataset.date;
-                    currentCalendarDate = new Date(headerDate);
+                    selectedWeekStart = new Date(headerDate);
                     renderCalendar();
                     dialog.classList.remove('hidden');
                 } else {
@@ -873,7 +873,7 @@ function generateCalendarDialogScript(): string
             }
 
             function changeMonth(offset) {
-                currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
+                selectedWeekStart.setMonth(selectedWeekStart.getMonth() + offset);
                 renderCalendar();
             }
 

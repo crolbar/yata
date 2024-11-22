@@ -1,3 +1,3 @@
 -   [x] make an [get, post]_protected router method instead of calling `OAuthController::checkLogedIn();` on every protected path
--   [ ] display current time
+-   [x] display current time
 -   [ ] fetch tasks only for the selected week
