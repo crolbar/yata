@@ -424,6 +424,20 @@ $picture    = $_SESSION['picture'];
                 });
             }
 
+            function highlightDay(day) {
+                const weekdays = ["", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+                const currDayColumn = document.querySelector(`#day-column[data-week="${weekdays[day || 7]}"]`)
+                currDayColumn.classList.remove("border-neutral-500")
+                currDayColumn.classList.add("border-red-500")
+
+                if (day) {
+                    const nextDayColumn = document.querySelector(`#day-column[data-week="${weekdays[(day || 7) + 1]}"]`)
+                    nextDayColumn.classList.remove("border-neutral-500")
+                    nextDayColumn.classList.add("border-red-500")
+                }
+            }
+
             function renderCurrTimeBar() {
                 // remove old if present
                 const oldCurrTimeBar = document.getElementById('curr-time-bar')
@@ -443,6 +457,8 @@ $picture    = $_SESSION['picture'];
 
                 const grid = document.getElementById('grid-container');
                 grid.insertAdjacentHTML("beforeend", line)
+
+                highlightDay(date.getDay())
             }
 
             function toggleThrobbler() {
