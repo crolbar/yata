@@ -205,7 +205,7 @@ function generateTaskDialog(): string
     return <<<HTML
     <div id="task-dialog" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
         <div class="p-6 rounded-lg shadow-xl w-96">
-            <h3 class="text-xl font-bold mb-4">Add New Task</h3>
+            <h3 id="task-header" class="text-xl font-bold mb-4" data-default="Add New Task">Add New Task</h3>
 
             <form id="task-form">
 
@@ -359,6 +359,8 @@ $picture    = $_SESSION['picture'];
                     return;
                 }
 
+                const taskHeader = document.querySelector('#task-header')
+                taskHeader.textContent = taskHeader.dataset.default
                 dialog.classList.add('hidden');
             }
 
@@ -389,6 +391,8 @@ $picture    = $_SESSION['picture'];
                 form.querySelector(`#task-start`).value = start
                 form.querySelector(`#task-end`).value = end
                 form.querySelector(`#task-id`).value = id
+
+                document.querySelector('#task-header').textContent = `Edit Task: ${title}`
 
                 toggleTaskDialog();
             }
