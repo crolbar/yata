@@ -1,0 +1,9 @@
+*.project
+*local.properties
+*.settings
+*.idea
+.gradle
+app/bin
+app/build
+app/.classpath
+google-services.json

@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.notifiyer" parent="Theme.AppCompat.Light.DarkActionBar" />
+</resources>
