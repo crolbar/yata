@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#353535"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <CalendarView
+        android:id="@+id/calendarView"
+        style="@android:style/Widget.Material.CalendarView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#2A2A2A"
+        android:weekNumberColor="#E4E4E4" />
+
+
+    <Button
+        android:id="@+id/my_button"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="383dp"
+        android:layout_height="368dp"
+        android:background="#000000"
+        android:shadowColor="#241F1F"
+        android:text="button"
+        android:textColor="#FFFFFF"
+        android:textColorHighlight="#000000"
+        android:textColorHint="#CDDC39"
+        android:textColorLink="#000000" />
+
+</LinearLayout>
