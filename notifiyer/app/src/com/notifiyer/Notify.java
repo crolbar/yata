@@ -11,12 +11,16 @@ class Notify extends AppCompatActivity
 {
   public
     static final String CHANNEL_ID = "notifiyer_channel";
+
+  private
+    MainActivity ma = null;
   public
     NotificationManager notificationManager;
 
-    Notify(NotificationManager nm)
+    Notify(NotificationManager nm, MainActivity ma)
     {
-        notificationManager = nm;
+        this.ma = ma;
+        this.notificationManager = nm;
         this.createNotificationChannel();
     }
 
@@ -34,10 +38,10 @@ class Notify extends AppCompatActivity
     }
 
   public
-    void showNotification(MainActivity ma, String title, String msg)
+    void showNotification(String title, String msg)
     {
         NotificationCompat.Builder builder =
-          new NotificationCompat.Builder(ma, CHANNEL_ID)
+          new NotificationCompat.Builder(this.ma, CHANNEL_ID)
             .setSmallIcon(R.drawable.notif_icon)
             .setContentTitle(title)
             .setContentText(msg)

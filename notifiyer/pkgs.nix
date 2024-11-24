@@ -16,7 +16,7 @@ with pkgs; [
     if [[ "$1" == "e" ]]; then
         dev="emulator-5554"
     else
-        dev="adb-73d726a0-gl9U2r._adb-tls-connect._tcp"
+        dev="192.168.1.3:40951"
     fi
 
     adb -s $dev install app/build/outputs/apk/debug/app-debug.apk
