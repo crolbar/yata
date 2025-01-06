@@ -7,6 +7,13 @@ import android.os.Handler;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
+
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+
 public
 class MainActivity extends AppCompatActivity
 {
@@ -22,6 +29,26 @@ class MainActivity extends AppCompatActivity
         notifyButton();
 
         FireShit.initFireShit(this, this.notify);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermission();
+        }
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    private void requestNotificationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    1
+            );
+        }
     }
 
   private
