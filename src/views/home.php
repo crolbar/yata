@@ -428,9 +428,9 @@ $picture    = $_SESSION['picture'];
                 });
             }
 
-            function highlightDay(day) {
-                const weekdays = ["", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+            const weekdays = ["", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
+            function highlightDay(day) {
                 const currDayColumn = document.querySelector(`#day-column[data-week="${weekdays[day || 7]}"]`)
                 currDayColumn.classList.remove("border-neutral-500")
                 currDayColumn.classList.add("border-red-500")
@@ -443,14 +443,32 @@ $picture    = $_SESSION['picture'];
             }
 
             function renderCurrTimeBar() {
+                let date = new Date();
+
                 // remove old if present
                 const oldCurrTimeBar = document.getElementById('curr-time-bar')
                 if (oldCurrTimeBar) {
                     oldCurrTimeBar.remove()
+
+                    const day = date.getDay();
+                    document.querySelector(`#day-column[data-week="${weekdays[day || 7]}"]`)
+                        .classList
+                        .remove("border-red-500")
+
+                    if (day) {
+                        document.querySelector(`#day-column[data-week="${weekdays[(day || 7) + 1] }"]`)
+                            .classList
+                            .remove("border-red-500")
+                    }
                 }
 
 
-                let date = new Date();
+                const sel_week_start = document.querySelectorAll('#grid-header-container .grid > div:not(:first-child)')[0].dataset.date;
+                const cur_week_start = new Date(Date.now() - ((new Date().getDay() || 7) - 1) * 86400000).toLocaleDateString('en-CA');
+
+                if (sel_week_start != cur_week_start)
+                    return;
+
                 const startHours = date.getHours() + date.getMinutes() / 60;
                 const TIME_CELL_HEIGHT = 60;
                 let currTime = startHours * TIME_CELL_HEIGHT;
