@@ -5,6 +5,7 @@ with pkgs; [
   gradle
   jdk
   jdt-language-server
+  android-tools
 
   (pkgs.writers.writeBashBin "prun" ''
     # 192.168.1.3:42531
@@ -16,7 +17,7 @@ with pkgs; [
     if [[ "$1" == "e" ]]; then
         dev="emulator-5554"
     else
-        dev="192.168.1.3:40951"
+        dev="192.168.1.2:41965"
     fi
 
     adb -s $dev install app/build/outputs/apk/debug/app-debug.apk

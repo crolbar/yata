@@ -9,13 +9,10 @@ import com.google.firebase.messaging.RemoteMessage;
 public
 class FireShit extends FirebaseMessagingService
 {
-    static Notify notify;
-
   public
-    static void initFireShit(MainActivity ma, Notify n)
+    static void initFireShit(MainActivity ma)
     {
         FirebaseApp.initializeApp(ma);
-        FireShit.notify = n;
 
         FirebaseMessaging.getInstance()
           .subscribeToTopic("topic")
@@ -42,6 +39,6 @@ class FireShit extends FirebaseMessagingService
         String message = remoteMessage.getData().toString();
         Log.w("fireshit", "msg recived: " + message);
 
-        FireShit.notify.showNotification("title for notif", message);
+        Notify.showNotification("title for notif", message, this);
     }
 }
