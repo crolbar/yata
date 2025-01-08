@@ -2,6 +2,7 @@ package com.notifiyer;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.os.Build;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
@@ -9,23 +10,12 @@ import androidx.core.app.NotificationCompat;
 public
 class Notify extends AppCompatActivity
 {
-  public
-    static final String CHANNEL_ID = "notifiyer_channel";
+  private
+    static final String CHANNEL_ID = "default_channel";
 
   private
-    MainActivity ma = null;
-  public
-    NotificationManager notificationManager;
-
-    Notify(NotificationManager nm, MainActivity ma)
-    {
-        this.ma = ma;
-        this.notificationManager = nm;
-        this.createNotificationChannel();
-    }
-
-  private
-    void createNotificationChannel()
+    static void createNotificationChannel(
+      NotificationManager notificationManager)
     {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel =
@@ -38,15 +28,21 @@ class Notify extends AppCompatActivity
     }
 
   public
-    void showNotification(String title, String msg)
+    static void showNotification(String title, String msg, Context ctx)
     {
+        NotificationManager notificationManager =
+          (NotificationManager)ctx.getSystemService(
+            Context.NOTIFICATION_SERVICE);
+
+        Notify.createNotificationChannel(notificationManager);
+
         NotificationCompat.Builder builder =
-          new NotificationCompat.Builder(this.ma, CHANNEL_ID)
+          new NotificationCompat.Builder(ctx, CHANNEL_ID)
             .setSmallIcon(R.drawable.notif_icon)
             .setContentTitle(title)
             .setContentText(msg)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
-        this.notificationManager.notify(1, builder.build());
+        notificationManager.notify(0, builder.build());
     }
 }
