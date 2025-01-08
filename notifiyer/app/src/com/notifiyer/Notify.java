@@ -28,7 +28,7 @@ class Notify extends AppCompatActivity
     }
 
   public
-    static void showNotification(String title, String msg, Context ctx)
+    static void showNotification(String title, String text, Context ctx)
     {
         NotificationManager notificationManager =
           (NotificationManager)ctx.getSystemService(
@@ -40,7 +40,7 @@ class Notify extends AppCompatActivity
           new NotificationCompat.Builder(ctx, CHANNEL_ID)
             .setSmallIcon(R.drawable.notif_icon)
             .setContentTitle(title)
-            .setContentText(msg)
+            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
         notificationManager.notify(0, builder.build());

@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Routing\Router;
 use App\Models\TaskModel;
+use App\Lib\Notify;
 
 class TaskController
 {
@@ -65,6 +66,8 @@ class TaskController
             $end_time,
             $owner_id,
         );
+
+        Notify::send_notif("Created new task: \"$title\"", $title);
 
         self::fetchAll();
     }

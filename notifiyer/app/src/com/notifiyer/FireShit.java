@@ -6,6 +6,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Map;
+
 public
 class FireShit extends FirebaseMessagingService
 {
@@ -36,9 +38,11 @@ class FireShit extends FirebaseMessagingService
 
     @Override public void onMessageReceived(RemoteMessage remoteMessage)
     {
-        String message = remoteMessage.getData().toString();
-        Log.w("fireshit", "msg recived: " + message);
+        Map<String, String> data = remoteMessage.getData();
+        Log.w("fireshit", "msg recived: " + data.toString());
+        String text = data.get("text");
+        String title = data.get("title");
 
-        Notify.showNotification("title for notif", message, this);
+        Notify.showNotification(title, text, this);
     }
 }
