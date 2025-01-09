@@ -40,6 +40,22 @@ class Auth
         this.mGoogleSignInClient = GoogleSignIn.getClient(activity, gso);
         this.mAuth = FirebaseAuth.getInstance();
         this.mActivity = activity;
+
+        this.mGoogleSignInClient.silentSignIn().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                GoogleSignInAccount account = task.getResult();
+
+                if (account != null) {
+                    String googleIdToken = account.getIdToken();
+
+                    if (googleIdToken != null) {
+                        this.mActivity.storeJWT(googleIdToken);
+                    }
+                }
+            } else {
+                Log.e("Oauth", "Silent sign-in failed", task.getException());
+            }
+        });
     }
 
   public
@@ -101,6 +117,7 @@ class Auth
           GoogleAuthProvider.getCredential(account.getIdToken(), null);
 
         String subId = account.getId();
+        this.mActivity.storeJWT(account.getIdToken());
 
         mAuth.signInWithCredential(credential)
           .addOnCompleteListener(
@@ -131,7 +148,8 @@ class Auth
 
             String sub = "";
             for (UserInfo profile : user.getProviderData()) {
-                if (!GoogleAuthProvider.PROVIDER_ID.equals(profile.getProviderId()))
+                if (!GoogleAuthProvider.PROVIDER_ID.equals(
+                      profile.getProviderId()))
                     continue;
 
                 sub = profile.getUid();
@@ -146,6 +164,7 @@ class Auth
             this.mActivity.username = user.getDisplayName();
 
             callback.run();
+            this.mActivity.updateDeviceToken();
         });
     }
 }

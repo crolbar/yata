@@ -3,7 +3,9 @@
 namespace App\Lib;
 
 use App\Util\Env;
+use App\Models\NotifyModel;
 Env::ParseEnv();
+
 
 class Notify {
     private static function createJWT(string $tokenUri, string $clientEmail, string $privateKey): string
@@ -92,8 +94,11 @@ class Notify {
     {
         $access_token = Notify::getAccessToken();
 
-        // TODO
-        $device_token = "cpDjoJFCTZmqmoXIRyFWNa:APA91bEjon1Wbmxfqty8cI4YgYpVqv4PTGFALVaekdgHi9HqZ0vrGx5R_w5419Uhi44Xlpc7OvtHT-kSDBjpmE0AY_A2mRxqYwiri0JXK_Ldlr_gJBwr4IQ";
+        $device_token = NotifyModel::get_fcm_device_token_for($_SESSION["id"]);
+        if ($device_token === false) {
+            return;
+        }
+
 
         $url = 'https://fcm.googleapis.com/v1/projects/yata-43e21/messages:send';
         $headers = [

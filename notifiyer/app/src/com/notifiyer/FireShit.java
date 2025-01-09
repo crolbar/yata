@@ -3,9 +3,6 @@ package com.notifiyer;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.UserInfo;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
@@ -14,6 +11,9 @@ import java.util.Map;
 public
 class FireShit extends FirebaseMessagingService
 {
+  public
+    static Auth auth;
+
     @Override public void onMessageReceived(RemoteMessage remoteMessage)
     {
         Map<String, String> data = remoteMessage.getData();
@@ -28,23 +28,11 @@ class FireShit extends FirebaseMessagingService
     {
         super.onNewToken(token);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (user == null) {
-            Log.e("Oauth", "User not signed in. new token tho: " + token);
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Log.e("Oauth", "User not signed in. new token: " + token);
             return;
         }
 
-        String subId = null;
-        for (UserInfo profile : user.getProviderData()) {
-            if (!GoogleAuthProvider.PROVIDER_ID.equals(profile.getProviderId()))
-                continue;
-
-            subId = profile.getUid();
-            break;
-        }
-
-        Log.w("Oauth", "new token: " + token);
-        Log.w("Oauth", "sub after token: " + subId);
+        auth.updateInfo(()->{});
     }
 }

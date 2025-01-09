@@ -98,10 +98,13 @@ class OAuthController
             self::refreshJWT($jwt["sub"]);
         }
 
-        session_start();
-        if (!isset($_SESSION["id"])) {
-            self::logout();
-            exit;
+        if (!isset($_POST["sub"])) {
+            session_start();
+
+            if (!isset($_SESSION["id"])) {
+                self::logout();
+                exit;
+            }
         }
 
         ob_end_flush();
