@@ -19,8 +19,8 @@
     <Button
         android:id="@+id/my_button"
         style="@style/Widget.AppCompat.Button"
-        android:layout_width="383dp"
-        android:layout_height="368dp"
+        android:layout_width="195dp"
+        android:layout_height="158dp"
         android:background="#000000"
         android:shadowColor="#241F1F"
         android:text="button"
@@ -28,5 +28,18 @@
         android:textColorHighlight="#000000"
         android:textColorHint="#CDDC39"
         android:textColorLink="#000000" />
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btn_google_sign_in"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+    </com.google.android.gms.common.SignInButton>
+
+    <Button
+        android:id="@+id/btn_google_sign_out"
+        android:layout_width="129dp"
+        android:layout_height="62dp"
+        android:text="Sign out" />
 
 </LinearLayout>
