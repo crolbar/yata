@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN fcm_device_token TEXT DEFAULT NULL;

@@ -1,6 +1,7 @@
 package com.notifiyer;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,13 +17,24 @@ import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public
 class MainActivity extends AppCompatActivity
 {
+  private
+    final String API_URL = "http://192.168.1.12:8000";
+
   private
     Auth auth;
 
@@ -53,6 +65,7 @@ class MainActivity extends AppCompatActivity
         FirebaseApp.initializeApp(this);
 
         this.auth = new Auth(this);
+        FireShit.auth = this.auth;
 
         this.profileImageView = findViewById(R.id.profile_image_view);
         this.usernameTextView = findViewById(R.id.username_text_view);
@@ -109,6 +122,59 @@ class MainActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestNotificationPermission();
         }
+    }
+
+  public
+    void updateDeviceToken()
+    {
+        String url = this.API_URL + "/api/set-fcm-token";
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        StringRequest postRequest = new StringRequest(
+          Request.Method.POST,
+          url,
+          response->{ Log.d("Response", response.toString()); },
+          error->{ Log.e("Error", error.toString()); })
+        {
+
+            @Override public Map<String, String> getHeaders()
+              throws AuthFailureError
+            {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", "jwt=" + getJWT());
+                return headers;
+            }
+
+            @Override protected Map<String, String> getParams()
+              throws AuthFailureError
+            {
+                Map<String, String> params = new HashMap<>();
+                params.put("sub", sub);
+                params.put("token", fcm_token);
+                return params;
+            }
+        };
+
+        queue.add(postRequest);
+    }
+
+  public
+    void storeJWT(String token)
+    {
+        SharedPreferences prefs =
+          getSharedPreferences("app_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("jwt", token);
+        editor.apply();
+    }
+
+  public
+    String getJWT()
+    {
+        SharedPreferences prefs =
+          getSharedPreferences("app_prefs", MODE_PRIVATE);
+        return prefs.getString("jwt", null);
     }
 
   private
