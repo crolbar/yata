@@ -1,10 +1,10 @@
 package com.notifiyer;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
@@ -43,13 +43,24 @@ class Auth
     }
 
   public
+    void signInOut()
+    {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            this.signIn();
+            return;
+        }
+
+        this.signOut();
+    }
+
+  private
     void signIn()
     {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         this.mActivity.startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
-  public
+  private
     void signOut()
     {
         mAuth.signOut();
@@ -60,6 +71,8 @@ class Auth
                 .makeText(
                   this.mActivity, "Signed out successfully", Toast.LENGTH_SHORT)
                 .show();
+
+              this.mActivity.updateUI();
           });
     }
 
@@ -69,9 +82,11 @@ class Auth
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task =
               GoogleSignIn.getSignedInAccountFromIntent(data);
+
             try {
                 GoogleSignInAccount account =
                   task.getResult(ApiException.class);
+
                 firebaseAuthWithGoogle(account);
             } catch (ApiException e) {
                 Log.w("Oauth", "Google sign-in failed", e);
@@ -91,19 +106,21 @@ class Auth
           .addOnCompleteListener(
             this.mActivity, task->{
                 if (task.isSuccessful()) {
-                    firebaseGetUserInfo(subId);
+                    this.mActivity.updateUI();
+
+                    Log.d("Oauth",
+                          "Sign-in successful: emal: " + account.getEmail() +
+                            " sub: " + subId);
                 } else {
                     Log.w("Oauth", "Sign-in failed", task.getException());
                 }
             });
     }
 
-  private
-    void firebaseGetUserInfo(String sub)
+  public
+    void updateInfo(Runnable callback)
     {
         FirebaseUser user = mAuth.getCurrentUser();
-        String email = user.getEmail();
-        Uri photo = user.getPhotoUrl();
 
         FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task->{
             if (!task.isSuccessful()) {
@@ -112,9 +129,23 @@ class Auth
             }
             String token = task.getResult();
 
-            Log.d("Oauth",
-                  "Sign-in successful: emal: " + email + " sub: " + sub +
-                    " token: " + token + " photo: " + photo.toString());
+            String sub = "";
+            for (UserInfo profile : user.getProviderData()) {
+                if (!GoogleAuthProvider.PROVIDER_ID.equals(profile.getProviderId()))
+                    continue;
+
+                sub = profile.getUid();
+                break;
+            }
+
+            Log.d("Oauth", "sub: " + sub + "token: " + token);
+
+            this.mActivity.sub = sub;
+            this.mActivity.fcm_token = token;
+            this.mActivity.profileImageUri = user.getPhotoUrl().toString();
+            this.mActivity.username = user.getDisplayName();
+
+            callback.run();
         });
     }
 }
