@@ -1,45 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#353535"
-    android:orientation="vertical"
+    android:background="#161616"
     android:padding="16dp">
 
-    <CalendarView
-        android:id="@+id/calendarView"
-        style="@android:style/Widget.Material.CalendarView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#2A2A2A"
-        android:weekNumberColor="#E4E4E4" />
-
-
     <Button
-        android:id="@+id/my_button"
-        style="@style/Widget.AppCompat.Button"
-        android:layout_width="195dp"
-        android:layout_height="158dp"
-        android:background="#000000"
-        android:shadowColor="#241F1F"
-        android:text="button"
-        android:textColor="#FFFFFF"
-        android:textColorHighlight="#000000"
-        android:textColorHint="#CDDC39"
-        android:textColorLink="#000000" />
-
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/btn_google_sign_in"
+        android:id="@+id/btn_sign_in_out"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:text="Sign In"
+        android:textColor="#dadada"
+        android:background="#323232"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    </com.google.android.gms.common.SignInButton>
+    <ImageView
+        android:id="@+id/profile_image_view"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" 
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/btn_google_sign_out"
-        android:layout_width="129dp"
-        android:layout_height="62dp"
-        android:text="Sign out" />
+    <TextView
+        android:id="@+id/username_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profile_image_view" />
 
-</LinearLayout>
+    <Switch
+        android:id="@+id/rc_notif_switch"
+        android:layout_width="209dp"
+        android:layout_height="50dp"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        android:text="Recive notifications"
+        android:textColor="#FFFFFF"
+        android:thumb="@drawable/switch_thumb"
+        android:track="@drawable/switch_track"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
