@@ -26,12 +26,14 @@ class NotifyModel
         $stmt->execute();
     }
 
+    // return false on nothing found for id, device token is not set
+    // and if wants_notifications is false
     public static function get_fcm_device_token_for(string $id): string|bool
     {
         $pdo    = Database::getConnection();
 
         $query  = <<<SQL
-        SELECT fcm_device_token
+        SELECT fcm_device_token, wants_notifications
         FROM users
         WHERE id = :id
         SQL;
@@ -53,6 +55,53 @@ class NotifyModel
             return false;
         }
 
+        if ($res[0]["wants_notifications"] === false) {
+            return false;
+        }
+
         return $res[0]["fcm_device_token"];
+    }
+
+    public static function update_notifications_for(string $sub, bool $wants_notifications): void
+    {
+        $pdo    = Database::getConnection();
+
+        $query  = <<<SQL
+        UPDATE users
+        SET wants_notifications = :wants_notifications
+        WHERE sub = :sub
+        SQL;
+
+        $stmt = $pdo->prepare($query);
+
+        $stmt->bindValue(":sub", $sub, PDO::PARAM_STR);
+        $stmt->bindValue(":wants_notifications", $wants_notifications, PDO::PARAM_BOOL);
+
+        $stmt->execute();
+    }
+
+    public static function get_status_of_notifications_for(string $sub): string|bool
+    {
+        $pdo    = Database::getConnection();
+
+        $query  = <<<SQL
+        SELECT wants_notifications
+        FROM users
+        WHERE sub = :sub
+        SQL;
+
+        $stmt = $pdo->prepare($query);
+
+        $stmt->bindValue(":sub", $sub, PDO::PARAM_STR);
+
+        $stmt->execute();
+
+        $res = $stmt->fetchAll();
+
+        if (sizeof($res) !== 1) {
+            return false;
+        }
+
+        return $res[0]["wants_notifications"] ? "true" : "false";
     }
 }

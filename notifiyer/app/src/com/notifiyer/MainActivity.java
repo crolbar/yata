@@ -29,6 +29,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.json.JSONObject;
+
 public
 class MainActivity extends AppCompatActivity
 {
@@ -77,8 +79,10 @@ class MainActivity extends AppCompatActivity
         this.rcNotifSwitch.setOnCheckedChangeListener((buttonView, isChecked)->{
             if (isChecked) {
                 Log.d("Switch", "Switch is ON");
+                updateReciveNotification(true);
             } else {
                 Log.d("Switch", "Switch is OFF");
+                updateReciveNotification(false);
             }
         });
 
@@ -106,13 +110,14 @@ class MainActivity extends AppCompatActivity
 
         this.auth.updateInfo(()->{
             profileImageView.setVisibility(View.VISIBLE);
-            rcNotifSwitch.setVisibility(View.VISIBLE);
             usernameTextView.setVisibility(View.VISIBLE);
 
             Glide.with(this).load(profileImageUri).into(profileImageView);
 
             usernameTextView.setText(this.username);
             signInOutButton.setText("Sign Out");
+
+            updateSwitchState();
         });
     }
 
@@ -122,6 +127,89 @@ class MainActivity extends AppCompatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestNotificationPermission();
         }
+    }
+
+  private
+    void updateSwitchState()
+    {
+        String url = this.API_URL + "/api/get-notification-status";
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        StringRequest postRequest = new StringRequest(
+          Request.Method.POST,
+          url,
+          response->{
+              Log.d("SwitchStateResponse", response.toString());
+
+              try {
+                  JSONObject json = new JSONObject(response);
+
+                  if (json.get("wants_notifications").equals("true")) {
+                      rcNotifSwitch.setChecked(true);
+                  } else {
+                      rcNotifSwitch.setChecked(false);
+                  }
+
+                  rcNotifSwitch.setVisibility(View.VISIBLE);
+
+              } catch (Exception e) {
+                  e.printStackTrace();
+              }
+          },
+          error->{ Log.e("Error", error.toString()); })
+        {
+            @Override public Map<String, String> getHeaders()
+              throws AuthFailureError
+            {
+                Map<String, String> headers = new HashMap<>();
+
+                headers.put("Cookie", "jwt=" + getJWT());
+                return headers;
+            }
+
+            @Override protected Map<String, String> getParams()
+              throws AuthFailureError
+            {
+                Map<String, String> params = new HashMap<>();
+                params.put("sub", sub);
+                return params;
+            }
+        };
+
+        queue.add(postRequest);
+    }
+
+  private
+    void updateReciveNotification(boolean wants_notifications)
+    {
+        String url = this.API_URL + "/api/update-notification-status";
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        StringRequest postRequest = new StringRequest(
+          Request.Method.POST,
+          url,
+          response->{ Log.d("Response", response.toString()); },
+          error->{ Log.e("Error", error.toString()); })
+        {
+            @Override public Map<String, String> getHeaders()
+              throws AuthFailureError
+            {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Cookie", "jwt=" + getJWT());
+                return headers;
+            }
+
+            @Override protected Map<String, String> getParams()
+              throws AuthFailureError
+            {
+                Map<String, String> params = new HashMap<>();
+                params.put("sub", sub);
+                params.put("wants_notifications", wants_notifications ? "true" : "false");
+                return params;
+            }
+        };
+
+        queue.add(postRequest);
     }
 
   public
