@@ -92,13 +92,12 @@ class Notify {
 
     public static function send_notif(string $title, string $text): void
     {
-        $access_token = Notify::getAccessToken();
-
         $device_token = NotifyModel::get_fcm_device_token_for($_SESSION["id"]);
         if ($device_token === false) {
             return;
         }
 
+        $access_token = Notify::getAccessToken();
 
         $url = 'https://fcm.googleapis.com/v1/projects/yata-43e21/messages:send';
         $headers = [
