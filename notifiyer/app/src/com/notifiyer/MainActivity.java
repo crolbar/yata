@@ -35,7 +35,7 @@ public
 class MainActivity extends AppCompatActivity
 {
   private
-    final String API_URL = "http://192.168.1.12:8000";
+    final String API_URL = "https://yata.fly.dev";
 
   private
     Auth auth;
