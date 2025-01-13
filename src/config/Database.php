@@ -15,10 +15,10 @@ class Database
         if (self::$pdo === null) {
             Env::ParseEnv();
 
-            $host       = getenv("HOST");
-            $password   = getenv("PASSWORD");
-            $user       = getenv("USER");
-            $db         = getenv("DB");
+            $host       = getenv("DB_HOST");
+            $password   = getenv("DB_PASSWORD");
+            $user       = getenv("DB_USER");
+            $db         = getenv("DB_DB");
             $uri        = "pgsql:host=$host;dbname=$db;sslmode=require";
 
             try {

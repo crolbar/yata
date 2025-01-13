@@ -8,10 +8,10 @@ use App\Util\Env;
 function Connect(): PDO
 {
     Env::ParseEnv();
-    $host       = getenv("HOST");
-    $password   = getenv("PASSWORD");
-    $user       = getenv("USER");
-    $db         = getenv("DB");
+    $host       = getenv("DB_HOST");
+    $password   = getenv("DB_PASSWORD");
+    $user       = getenv("DB_USER");
+    $db         = getenv("DB_DB");
     $uri        = "pgsql:host=$host;dbname=$db;";
 
     try {
