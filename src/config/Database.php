@@ -19,7 +19,7 @@ class Database
             $password   = getenv("PASSWORD");
             $user       = getenv("USER");
             $db         = getenv("DB");
-            $uri        = "pgsql:host=$host;dbname=$db;";
+            $uri        = "pgsql:host=$host;dbname=$db;sslmode=require";
 
             try {
                 self::$pdo = new PDO($uri, $user, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
