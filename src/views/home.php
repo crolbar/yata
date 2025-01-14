@@ -311,7 +311,7 @@ $picture    = $user_data['picture'];
 <!DOCTYPE html>
 <html>
     <head>
-        <title>new</title>
+        <title>yata - <?=$name?></title>
         <link rel="stylesheet" href="global.css"/>
         <link rel="stylesheet" href="tailwind.css"/>
     </head>
