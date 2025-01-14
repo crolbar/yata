@@ -4,10 +4,12 @@ namespace App\Lib;
 
 use App\Util\Env;
 use App\Models\NotifyModel;
+
 Env::ParseEnv();
 
 
-class Notify {
+class Notify
+{
     private static function createJWT(string $tokenUri, string $clientEmail, string $privateKey): string
     {
         $header = base64_encode(
@@ -92,7 +94,8 @@ class Notify {
 
     public static function send_notif(string $title, string $text): void
     {
-        $device_token = NotifyModel::get_fcm_device_token_for($_SESSION["id"]);
+        $id = json_decode(base64_decode($_COOKIE["user_data"]), true)["id"];
+        $device_token = NotifyModel::get_fcm_device_token_for($id);
         if ($device_token === false) {
             return;
         }

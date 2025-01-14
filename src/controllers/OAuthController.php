@@ -16,17 +16,16 @@ class OAuthController
 
     public static function logout(): void
     {
-        session_start();
-        session_destroy();
         setcookie("jwt", "", time() - 3600, "/", "", true, true);
+        setcookie("user_data", "", time() - 3600, "/", "", true, true);
         header('Location: /login');
     }
 
-    public static function createSession(string $jwt, string $id, string $email, string $name, string $picture): void
+    /*
+     * @param array $user_data
+    */
+    public static function createSession(string $jwt, array $user_data): void
     {
-        session_start();
-        session_regenerate_id();
-
         setcookie(
             "jwt",
             $jwt,
@@ -38,10 +37,16 @@ class OAuthController
             ]
         );
 
-        $_SESSION['id']         = $id;
-        $_SESSION['email']      = $email;
-        $_SESSION['name']       = $name;
-        $_SESSION['picture']    = $picture;
+        setcookie(
+            'user_data',
+            base64_encode(json_encode($user_data)),
+            [
+                'httponly' => true,
+                'secure' => true,
+                'path' => '/',
+                'samesite' => 'Strict',
+            ]
+        );
     }
 
     private static function refreshJWT(string $sub): void
@@ -66,10 +71,10 @@ class OAuthController
         );
     }
 
-    // we can use this as an session_start()-er
     public static function checkLogedIn(): void
     {
         ob_start();
+
         if (!isset($_COOKIE["jwt"])) {
             self::logout();
             exit;
@@ -98,13 +103,9 @@ class OAuthController
             self::refreshJWT($jwt["sub"]);
         }
 
-        if (!isset($_POST["sub"])) {
-            session_start();
-
-            if (!isset($_SESSION["id"])) {
-                self::logout();
-                exit;
-            }
+        if (!isset($_POST["sub"]) && !isset($_COOKIE["user_data"])) {
+            self::logout();
+            exit;
         }
 
         ob_end_flush();
@@ -165,7 +166,14 @@ class OAuthController
             $id = UserModel::isNewUser($sub);
         }
 
-        self::createSession($tokens["id_token"], $id, $email, $name, $picture);
+        self::createSession(
+            $tokens["id_token"],
+            [
+                'id' => $id,
+                'name' => $name,
+                'picture' => $picture,
+            ]
+        );
 
         Router::view("redirecting", ["url" => "/"]);
     }

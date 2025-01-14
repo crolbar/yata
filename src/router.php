@@ -88,9 +88,7 @@ class Router
 
     private static function handleProtected(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
-            OAuthController::checkLogedIn();
-        }
+        OAuthController::checkLogedIn();
     }
 
     private function handle(string $path, string $method): void

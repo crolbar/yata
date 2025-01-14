@@ -10,8 +10,6 @@ class TaskController
 {
     public static function index(): void
     {
-        $owner_id = (int)$_SESSION["id"];
-
         Router::view("home");
     }
 
@@ -19,7 +17,7 @@ class TaskController
     {
         $week_start_unix    = (int)$_SERVER["HTTP_X_WEEK_START"];
         $week_end_unix      = (int)$_SERVER["HTTP_X_WEEK_END"];
-        $owner_id           = (int)$_SESSION["id"];
+        $owner_id           = TaskController::getUserIdFromCookie();
 
         echo json_encode(TaskModel::fetchAll(
             $owner_id,
@@ -39,7 +37,7 @@ class TaskController
         }
 
         $id         = (int)$json_payload["id"];
-        $owner_id   = (int)$_SESSION["id"];
+        $owner_id   = TaskController::getUserIdFromCookie();
 
         TaskModel::deleteById($id, $owner_id);
         self::fetchAll();
@@ -58,7 +56,7 @@ class TaskController
         $title      = $json_payload["title"];
         $start_time = (int)$json_payload["start_time"];
         $end_time   = (int)$json_payload["end_time"];
-        $owner_id   = (int)$_SESSION["id"];
+        $owner_id   = TaskController::getUserIdFromCookie();
 
         TaskModel::createTask(
             $title,
@@ -86,7 +84,7 @@ class TaskController
         $title      = $json_payload["title"];
         $start_time = (int)$json_payload["start_time"];
         $end_time   = (int)$json_payload["end_time"];
-        $owner_id   = (int)$_SESSION["id"];
+        $owner_id   = TaskController::getUserIdFromCookie();
 
         TaskModel::updateTask(
             $id,
@@ -96,5 +94,16 @@ class TaskController
             $owner_id,
         );
         self::fetchAll();
+    }
+
+
+    public static function getUserIdFromCookie(): int
+    {
+        return (int)json_decode(
+            base64_decode(
+                $_COOKIE["user_data"]
+            ),
+            true
+        )["id"];
     }
 }

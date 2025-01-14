@@ -181,25 +181,6 @@ function renderTaskBlock(
     HTML;
 }
 
-function genereteJSTasks(): string
-{
-    $js = '';
-
-    foreach ($_SESSION["tasks"] as $task) {
-        $js .= <<<JS
-        {
-            date: "{$task["date"]}",
-            title: "{$task["title"]}",
-            start: {$task["start"]},
-            end: {$task["end"]},
-        },
-        JS;
-    }
-
-    return $js;
-}
-
-
 function generateTaskDialog(): string
 {
     return <<<HTML
@@ -320,8 +301,10 @@ function renderCurrTimeBar(string $curr_time): string
 
 $date       = new DateTime();
 $week_start = clone $date->modify('monday this week');
-$name       = $_SESSION['name'];
-$picture    = $_SESSION['picture'];
+
+$user_data = json_decode(base64_decode($_COOKIE["user_data"]), true);
+$name       = $user_data['name'];
+$picture    = $user_data['picture'];
 
 ?>
 
