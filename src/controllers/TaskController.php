@@ -32,8 +32,7 @@ class TaskController
         $json_payload = json_decode($req_payload, true);
 
         if (!isset($json_payload["id"])) {
-            echo "ERROR: no id provided";
-            exit;
+            exit("ERROR: no id provided");
         }
 
         $id         = (int)$json_payload["id"];
@@ -49,8 +48,7 @@ class TaskController
         $json_payload = json_decode($req_payload, true);
 
         if (!isset($json_payload["title"])) {
-            echo "ERROR: no title provided";
-            exit;
+            exit("ERROR: no title provided");
         }
 
         $title      = $json_payload["title"];
@@ -76,8 +74,7 @@ class TaskController
         $json_payload = json_decode($req_payload, true);
 
         if (!isset($json_payload["title"]) || !isset($json_payload["id"])) {
-            echo "ERROR: no title/id provided";
-            exit;
+            exit("ERROR: no title/id provided");
         }
 
         $id         = (int)$json_payload["id"];

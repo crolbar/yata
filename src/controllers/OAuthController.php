@@ -138,13 +138,11 @@ class OAuthController
     {
         if (isset($_GET['error'])) {
             $error = $_GET['error'];
-            echo "got response with error: $error";
-            exit;
+            exit("got response with error: $error");
         }
 
         if (!isset($_GET['code'])) {
-            echo "code is not set. wrong path?" . "\n";
-            exit;
+            exit("code is not set. wrong path?" . "\n");
         }
 
         $code           = $_GET['code'];

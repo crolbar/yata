@@ -43,8 +43,7 @@ class GoogleJWT
         $id_token = $response["id_token"];
 
         if (self::verifyJwtSignature($id_token) === false) {
-            echo 'Invalid id_token.';
-            exit;
+            exit('Invalid id_token.');
         }
 
         return $id_token;
@@ -80,15 +79,13 @@ class GoogleJWT
         $response = json_decode($response, true);
 
         if (!isset($response['access_token'])) {
-            echo 'Invalid access token! Please try again later!';
-            exit;
+            exit('Invalid access token! Please try again later!');
         }
 
         $id_token = $response["id_token"];
 
         if (self::verifyJwtSignature($id_token) === false) {
-            echo 'Invalid id_token.';
-            exit;
+            exit('Invalid id_token.');
         }
 
         return $response;
@@ -110,8 +107,7 @@ class GoogleJWT
         $user_info = json_decode($response, true);
 
         if (!isset($user_info['email'])) {
-            echo 'Could not retrieve profile information! Please try again later!';
-            exit;
+            exit('Could not retrieve profile information! Please try again later!');
         }
 
         return $user_info;

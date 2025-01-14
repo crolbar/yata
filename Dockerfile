@@ -30,6 +30,8 @@ COPY .docker/nginx/sites-available/yata.conf /etc/nginx/sites-available/default
 COPY .docker/fpm/ /etc/php/${PHP_VERSION}/fpm/
 # supervisor config
 COPY .docker/supervisor/supervisord.conf /etc/supervisord.conf
+# php config
+COPY .docker/php/php.ini /etc/php/${PHP_VERSION}/cli/php.ini
 
 EXPOSE 10000
 

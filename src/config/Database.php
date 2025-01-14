@@ -24,8 +24,8 @@ class Database
             try {
                 self::$pdo = new PDO($uri, $user, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
             } catch (PDOException $e) {
-                // handle differently ?
-                die("DB connection failed: " . $e->getMessage());
+                error_log("DB connection failed: " . $e->getMessage());
+                exit("An error occurred. Please try again later.");
             }
         }
 

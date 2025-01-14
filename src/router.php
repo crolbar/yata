@@ -99,8 +99,7 @@ class Router
             $not_found_hash = md5("GET" . "404");
 
             if (!isset($this->routes[$not_found_hash])) {
-                echo "404";
-                exit;
+                exit("404");
             }
 
             call_user_func($this->routes[$not_found_hash]['callback']);
