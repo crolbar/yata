@@ -635,6 +635,10 @@ $picture    = $user_data['picture'];
 <?php
 function renderNavigationControls(DateTime $week_start): string
 {
+    $week_start = clone $week_start;
+    $start = $week_start->format("F j, Y");
+    $end = $week_start->add(new DateInterval("P6D"))->format("F j, Y");
+
     return <<<HTML
     <div class="flex justify-between items-center p-4">
         <button 
@@ -648,7 +652,7 @@ function renderNavigationControls(DateTime $week_start): string
             id="nav-header"
             class='text-xl font-bold cursor-pointer hover:text-neutral-600'
         >
-            {$week_start->format('F j, Y')}
+            $start - $end
         </h2>
 
         <button
@@ -732,9 +736,15 @@ function generateCalendarDialogScript(): string
 
                 const updateNavigationHeader = (week) => {
                     const navigationHeader = document.querySelector('#nav-header');
-                    navigationHeader.textContent = week[0].toLocaleDateString(
+                    const start = week[0].toLocaleDateString(
                         'en-US', { day: 'numeric', month: 'long', year: 'numeric' }
                     );
+
+                    const end = week[6].toLocaleDateString(
+                        'en-US', { day: 'numeric', month: 'long', year: 'numeric' }
+                    );
+
+                    navigationHeader.textContent = `\${start} - \${end}`;
                 }
 
                 const updateGrid = (week) => {
