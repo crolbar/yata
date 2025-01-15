@@ -38,6 +38,8 @@ class TaskController
         $id         = (int)$json_payload["id"];
         $owner_id   = TaskController::getUserIdFromCookie();
 
+        Notify::deleteCronJob($id);
+
         TaskModel::deleteById($id, $owner_id);
         self::fetchAll();
     }
@@ -56,14 +58,15 @@ class TaskController
         $end_time   = (int)$json_payload["end_time"];
         $owner_id   = TaskController::getUserIdFromCookie();
 
+        $cron_job_id = Notify::createCronJob($start_time, $title);
+
         TaskModel::createTask(
             $title,
             $start_time,
             $end_time,
             $owner_id,
+            $cron_job_id
         );
-
-        Notify::send_notif("Created new task: \"$title\"", $title);
 
         self::fetchAll();
     }
@@ -82,6 +85,8 @@ class TaskController
         $start_time = (int)$json_payload["start_time"];
         $end_time   = (int)$json_payload["end_time"];
         $owner_id   = TaskController::getUserIdFromCookie();
+
+        $cron_job_id = Notify::updateCronJob($id, $start_time, $title);
 
         TaskModel::updateTask(
             $id,

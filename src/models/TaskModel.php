@@ -64,6 +64,7 @@ class TaskModel
         int $start_time,
         int $end_time,
         int $owner_id,
+        int|null $cron_job_id
     ): void {
         $pdo    = Database::getConnection();
 
@@ -73,14 +74,16 @@ class TaskModel
                 title,
                 start_time,
                 end_time,
-                owner
+                owner,
+                cron_job_id
             )
         VALUES 
             (
                 :title,
                 to_timestamp(:start_time),
                 to_timestamp(:end_time),
-                :owner
+                :owner,
+                :cron_job_id
             );
         SQL;
 
@@ -90,6 +93,7 @@ class TaskModel
         $stmt->bindValue(":start_time", $start_time, PDO::PARAM_INT);
         $stmt->bindValue(":end_time", $end_time, PDO::PARAM_INT);
         $stmt->bindValue(":owner", $owner_id, PDO::PARAM_INT);
+        $stmt->bindValue(":cron_job_id", $cron_job_id, PDO::PARAM_INT);
 
         $stmt->execute();
     }
@@ -123,5 +127,26 @@ class TaskModel
         $stmt->bindValue(":owner_id", $owner_id, PDO::PARAM_INT);
 
         $stmt->execute();
+    }
+
+    public static function getCronJobId(
+        int $task_id
+    ): int|null {
+        $pdo    = Database::getConnection();
+
+        $query  = <<<SQL
+        SELECT cron_job_id
+        FROM tasks
+        WHERE id = :task_id
+        SQL;
+        $stmt   = $pdo->prepare($query);
+
+        $stmt->bindValue(":task_id", $task_id, PDO::PARAM_INT);
+
+        $stmt->execute();
+
+        $res = $stmt->fetchAll();
+
+        return $res[0]["cron_job_id"];
     }
 }
