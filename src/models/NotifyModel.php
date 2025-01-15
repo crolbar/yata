@@ -13,7 +13,8 @@ class NotifyModel
 
         $query  = <<<SQL
         UPDATE users SET
-        fcm_device_token = :token
+        fcm_device_token = :token,
+        updated_at       = CURRENT_TIMESTAMP
         WHERE
         sub = :sub
         SQL;
@@ -33,7 +34,9 @@ class NotifyModel
         $pdo    = Database::getConnection();
 
         $query  = <<<SQL
-        SELECT fcm_device_token, wants_notifications
+        SELECT
+            fcm_device_token,
+            wants_notifications
         FROM users
         WHERE id = :id
         SQL;
@@ -67,9 +70,11 @@ class NotifyModel
         $pdo    = Database::getConnection();
 
         $query  = <<<SQL
-        UPDATE users
-        SET wants_notifications = :wants_notifications
-        WHERE sub = :sub
+        UPDATE users SET
+        wants_notifications = :wants_notifications,
+        updated_at          = CURRENT_TIMESTAMP
+        WHERE
+        sub = :sub
         SQL;
 
         $stmt = $pdo->prepare($query);
