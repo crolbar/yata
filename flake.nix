@@ -35,12 +35,6 @@
           buildInputs = with pkgs; [
             php83
           ];
-
-          shellHook = ''
-            export ANDROID_HOME=${pkgs.androidsdk}/libexec/android-sdk
-            export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH
-            find $ANDROID_HOME -type f -exec patchelf --shrink-rpath '{}' \; 2>/dev/null || true
-          '';
         };
       }
     );
