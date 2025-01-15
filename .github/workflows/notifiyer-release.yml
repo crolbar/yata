@@ -1,0 +1,63 @@
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: build & sign apk
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+
+      - name: decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > notifiyer/release-key.jks
+
+      - name: decode google-services
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES }}" | base64 --decode > notifiyer/app/google-services.json
+
+      - run: |
+          cd notifiyer && \
+          chmod +x ./gradlew && \
+          ./gradlew build
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: notifiyer/app/build/outputs/apk/release/app-release.apk
+
+
+  release:
+    name: create release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: artifacts
+
+      - name: Rename APK
+        run: mv app-release.apk notifiyer-yata-crolbar-${{ github.ref_name }}.apk
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            notifiyer-yata-crolbar-${{ github.ref_name }}.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}

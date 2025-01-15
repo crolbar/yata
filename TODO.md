@@ -1,5 +1,5 @@
 -   [x] make an [get, post]_protected router method instead of calling `OAuthController::checkLogedIn();` on every protected path
 -   [x] display current time
 -   [x] fetch tasks only for the selected week
--   [ ] different notification trigger than task creation (task due time)
+-   [x] different notification trigger than task creation (task due time)
 -   [ ] task desc ?

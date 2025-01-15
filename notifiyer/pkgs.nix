@@ -6,6 +6,7 @@ with pkgs; [
   jdk
   jdt-language-server
   android-tools
+  apksigner
 
   (pkgs.writers.writeBashBin "prun" ''
     # 192.168.1.3:42531
