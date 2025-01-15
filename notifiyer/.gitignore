@@ -8,4 +8,4 @@ app/build
 app/.classpath
 google-services.json
 *~
-*.jks
+*.jks*
